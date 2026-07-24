@@ -239,14 +239,14 @@ to everything except the login call, and on any 401 clears the token so the moda
 - Deploy (WORKING since 2026-07-24): push to branch `prod` of
   github.com/krychuq1/mayo-dashboard → GitHub Action (`.github/workflows/deploy.yml`) →
   `ng build` production → S3 sync to `dashboard.mayo-app.com` (eu-north-1) with mayo-fe's
-  cache split; CloudFront invalidation only when repo var `CLOUDFRONT_DISTRIBUTION_ID` is
-  set (no distribution yet). Secrets AWS_ACCESS_KEY_ID/_SECRET set by the user; merged
-  deploy IAM policy in `aws/iam-policy-deploy.json`, checklist in `DEPLOY.md`. First
-  deploy verified green; site serves at
-  http://dashboard.mayo-app.com.s3-website.eu-north-1.amazonaws.com (website hosting +
-  public read were already configured). ⚠️ Still missing: S3 website ERROR DOCUMENT →
-  index.html (SPA refresh on /vinted-calendar 404s) and DNS for dashboard.mayo-app.com
-  (nonexistent; CNAME to the website endpoint or CloudFront+ACM later).
+  cache split + CloudFront invalidation. Secrets AWS_ACCESS_KEY_ID/_SECRET set by the
+  user; merged deploy IAM policy in `aws/iam-policy-deploy.json` (invalidation scoped to
+  the distribution), checklist in `DEPLOY.md`. FULLY LIVE: **https://dashboard.mayo-app.com**
+  via CloudFront **E14YWT0WTBKNTL** (repo var `CLOUDFRONT_DISTRIBUTION_ID` set via API;
+  invalidation step verified green). S3 website hosting has index+error doc = index.html,
+  so SPA deep links RENDER fine but carry HTTP **404 status** (S3 error-doc semantics;
+  harmless for an admin panel — a CloudFront custom error response 404→/index.html→200
+  would clean it up).
   Git auth quirk on this PC: pushes as krychuq1 work only via GCM store — extract with
   `git-credential-manager.exe get` (username=krychuq1) and pass as a basic-auth
   http.extraheader; plain `git push` prompts and dies (no tty), and `gh` is logged in as
