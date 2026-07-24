@@ -236,6 +236,18 @@ to everything except the login call, and on any 401 clears the token so the moda
 - Environments: `environment.development.ts` = `http://127.0.0.1:3003` (127.0.0.1, NOT
   localhost — IPv6 trap; NOT 3000 = digibate-ba), `environment.ts` (prod) =
   `https://server.mayo-app.com`.
+- Deploy (added 2026-07-24, NOT live yet): push to branch `prod` → GitHub Action
+  (`.github/workflows/deploy.yml`) → `ng build` production → S3 sync to
+  `dashboard.mayo-app.com` (eu-north-1; bucket EXISTS already, verified via 403-not-404)
+  with mayo-fe's cache split; CloudFront invalidation only when repo var
+  `CLOUDFRONT_DISTRIBUTION_ID` is set. Setup checklist in `DEPLOY.md`, deploy IAM policy
+  in `aws/iam-policy-deploy.json`. ⚠️ The repo has NO GitHub remote yet (mayo repos live
+  under github.com/krychuq1, but local `gh` is logged in as `digibate` — can't create it
+  from here); local `prod` branch created. mayo-fe's own deploy (`E:\mayo-fe/.github/
+  workflows/deploy.yml`) is the reference: buckets mayo-app.com / dev.mayo-app.com,
+  CF distributions E3IF3SWCTDUXV8 / EPR5MWB54Y62B, secrets AWS_ACCESS_KEY_ID/_SECRET.
+  The mayo-ba `.env` AWS key (IAM user `mayo-app`, acct 767397855093) can NOT list
+  buckets/distributions and has no rights on the dashboard bucket.
 - Removed 2026-07-23: old single-view `components/dashboard`, broken `day.service.ts`
   (imported nonexistent `api.config`), stray NestJS guard in `src/auth/`.
 
