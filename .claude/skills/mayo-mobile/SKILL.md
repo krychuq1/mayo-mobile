@@ -127,9 +127,13 @@ token — the local backend has its own DB (`localhost:15434`), so in dev the pr
 public `GET /activate-user/:token` on the ROOT controller (`src/app.controller.ts`) renders a
 branded Polish HTML page and activates via `authService.activateUserByToken(token)` (JWT
 verified from the URL, no Authorization header needed — `src/auth/auth.service.ts`).
-Dev `.env` sets `CLIENT_URL=http://<pc-lan-ip>:3003/` so the phone's browser lands there;
-**restore `CLIENT_URL=https://mayo-app.com/` before deploying**. If the PC's LAN IP changes,
-update CLIENT_URL and restart the backend.
+Dev `.env` sets `CLIENT_URL=http://<pc-lan-ip>:3003/` so the phone's browser lands there.
+**PROD (since 2026-07-24): `CLIENT_URL=https://server.mayo-app.com/`** — the API's own
+activation page, NOT https://mayo-app.com/: mayo-fe's `activate-user/:token` route is
+COMMENTED OUT in app.routes.ts, so links to the web app silently do nothing (this bit us
+on the first phone prod test — email link opened mayo-app.com, token never activated,
+app polled forever). SendGrid wraps links in ct.sendgrid.net click-tracking — normal,
+it redirects through. If the PC's LAN IP changes, update dev CLIENT_URL and restart.
 
 Other mayo-ba endpoints available (for future features): `GET /auth/check-open-all-days`,
 `PUT /auth/open-day/:dayId` (advent calendar), `GET /videos`, `POST /videos/resend`,
