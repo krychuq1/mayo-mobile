@@ -236,18 +236,23 @@ to everything except the login call, and on any 401 clears the token so the moda
 - Environments: `environment.development.ts` = `http://127.0.0.1:3003` (127.0.0.1, NOT
   localhost — IPv6 trap; NOT 3000 = digibate-ba), `environment.ts` (prod) =
   `https://server.mayo-app.com`.
-- Deploy (added 2026-07-24, NOT live yet): push to branch `prod` → GitHub Action
-  (`.github/workflows/deploy.yml`) → `ng build` production → S3 sync to
-  `dashboard.mayo-app.com` (eu-north-1; bucket EXISTS already, verified via 403-not-404)
-  with mayo-fe's cache split; CloudFront invalidation only when repo var
-  `CLOUDFRONT_DISTRIBUTION_ID` is set. Setup checklist in `DEPLOY.md`, deploy IAM policy
-  in `aws/iam-policy-deploy.json`. ⚠️ The repo has NO GitHub remote yet (mayo repos live
-  under github.com/krychuq1, but local `gh` is logged in as `digibate` — can't create it
-  from here); local `prod` branch created. mayo-fe's own deploy (`E:\mayo-fe/.github/
-  workflows/deploy.yml`) is the reference: buckets mayo-app.com / dev.mayo-app.com,
-  CF distributions E3IF3SWCTDUXV8 / EPR5MWB54Y62B, secrets AWS_ACCESS_KEY_ID/_SECRET.
-  The mayo-ba `.env` AWS key (IAM user `mayo-app`, acct 767397855093) can NOT list
-  buckets/distributions and has no rights on the dashboard bucket.
+- Deploy (WORKING since 2026-07-24): push to branch `prod` of
+  github.com/krychuq1/mayo-dashboard → GitHub Action (`.github/workflows/deploy.yml`) →
+  `ng build` production → S3 sync to `dashboard.mayo-app.com` (eu-north-1) with mayo-fe's
+  cache split; CloudFront invalidation only when repo var `CLOUDFRONT_DISTRIBUTION_ID` is
+  set (no distribution yet). Secrets AWS_ACCESS_KEY_ID/_SECRET set by the user; merged
+  deploy IAM policy in `aws/iam-policy-deploy.json`, checklist in `DEPLOY.md`. First
+  deploy verified green; site serves at
+  http://dashboard.mayo-app.com.s3-website.eu-north-1.amazonaws.com (website hosting +
+  public read were already configured). ⚠️ Still missing: S3 website ERROR DOCUMENT →
+  index.html (SPA refresh on /vinted-calendar 404s) and DNS for dashboard.mayo-app.com
+  (nonexistent; CNAME to the website endpoint or CloudFront+ACM later).
+  Git auth quirk on this PC: pushes as krychuq1 work only via GCM store — extract with
+  `git-credential-manager.exe get` (username=krychuq1) and pass as a basic-auth
+  http.extraheader; plain `git push` prompts and dies (no tty), and `gh` is logged in as
+  digibate (wrong account for mayo repos). mayo-fe's own deploy workflow is the reference:
+  buckets mayo-app.com / dev.mayo-app.com, CF E3IF3SWCTDUXV8 / EPR5MWB54Y62B. The mayo-ba
+  `.env` AWS key (IAM user `mayo-app`, acct 767397855093) has no rights on this bucket.
 - Removed 2026-07-23: old single-view `components/dashboard`, broken `day.service.ts`
   (imported nonexistent `api.config`), stray NestJS guard in `src/auth/`.
 
