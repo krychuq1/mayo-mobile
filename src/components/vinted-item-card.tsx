@@ -1,0 +1,356 @@
+import { Image } from 'expo-image';
+import { useState } from 'react';
+import {
+  FlatList,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import Animated, {
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+
+import type { VintedItem } from '@/lib/api';
+import { colors, fonts, primaryButtonStyle } from '@/lib/theme';
+
+// Flip physics ported from mayo-fe calendar-day.scss: 4.5 spins, fast start / slow stop.
+const FLIP_DEG = 1620;
+const FLIP_TIMING = {
+  duration: 2500,
+  easing: Easing.bezier(0.1, 0.9, 0.2, 1),
+};
+
+function formatPln(value: number): string {
+  return `${value.toFixed(2).replace('.', ',')} zł`;
+}
+
+/** Swipeable photo carousel with position dots (single photo → no dots). */
+function PhotoCarousel({
+  photos,
+  placeholder = '🧥',
+}: {
+  photos: string[];
+  placeholder?: string;
+}) {
+  const [width, setWidth] = useState(0);
+  const [index, setIndex] = useState(0);
+
+  const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (width > 0) {
+      setIndex(Math.round(e.nativeEvent.contentOffset.x / width));
+    }
+  };
+
+  if (photos.length === 0) {
+    return (
+      <View style={styles.photoPlaceholder}>
+        <Text style={styles.photoPlaceholderText}>{placeholder}</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      style={styles.carousel}
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+      {width > 0 && (
+        <FlatList
+          data={photos}
+          keyExtractor={(url, i) => `${i}-${url}`}
+          renderItem={({ item: url }) => (
+            <Image
+              source={{ uri: url }}
+              style={{ width, height: '100%' }}
+              contentFit="cover"
+              transition={200}
+            />
+          )}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={onScrollEnd}
+          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+        />
+      )}
+      {photos.length > 1 && (
+        <View style={styles.dots} pointerEvents="none">
+          {photos.map((_, i) => (
+            <View
+              key={i}
+              style={[styles.dot, i === index && styles.dotActive]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+/** One full-height feed slide — Claude Design "Product detail" template:
+ *  everything inside a white card (photo carousel, title, meta, CTAs).
+ *  "dodaj sosu" flips the whole card (mayo-fe calendar-day spin) to a
+ *  full-card sauce carousel with a back arrow. */
+export function VintedItemCard({
+  item,
+  height,
+}: {
+  item: VintedItem;
+  height: number;
+}) {
+  // 0 = product front, 1 = sauce back
+  const spin = useSharedValue(0);
+  const [showSauce, setShowSauce] = useState(false);
+
+  const frontStyle = useAnimatedStyle(() => ({
+    transform: [
+      { perspective: 1000 },
+      { rotateY: `${interpolate(spin.value, [0, 1], [0, FLIP_DEG])}deg` },
+    ],
+  }));
+  const backStyle = useAnimatedStyle(() => ({
+    transform: [
+      { perspective: 1000 },
+      { rotateY: `${interpolate(spin.value, [0, 1], [180, 180 + FLIP_DEG])}deg` },
+    ],
+  }));
+
+  const openSauce = () => {
+    setShowSauce(true);
+    spin.value = withTiming(1, FLIP_TIMING);
+  };
+  const closeSauce = () => {
+    setShowSauce(false);
+    spin.value = withTiming(0, FLIP_TIMING);
+  };
+
+  return (
+    <View style={[styles.slide, { height }]}>
+      <View style={styles.scene}>
+        <Animated.View
+          style={[styles.face, frontStyle]}
+          pointerEvents={showSauce ? 'none' : 'auto'}>
+          <View style={styles.card}>
+            <View style={styles.photoWrap}>
+              <PhotoCarousel photos={item.vintedItemUrls} />
+            </View>
+
+            <View style={styles.details}>
+              <Text style={styles.title} numberOfLines={1}>
+                {item.title}
+              </Text>
+
+              <View style={styles.metaRow}>
+                <Text style={styles.size}>rozmiar {item.size}</Text>
+                <View style={styles.priceRow}>
+                  <Text style={styles.priceShippingLabel}>z wysyłką</Text>
+                  <Text style={styles.price}>
+                    {formatPln(item.priceWithShipping)}
+                  </Text>
+                </View>
+              </View>
+
+              {!!item.description && (
+                <Text style={styles.description} numberOfLines={2}>
+                  {item.description}
+                </Text>
+              )}
+            </View>
+
+            <View style={styles.actions}>
+              <Pressable
+                style={[styles.primaryBtn, item.isSold && styles.btnDisabled]}
+                disabled={item.isSold}
+                onPress={openSauce}>
+                <Text style={styles.primaryBtnText}>
+                  {item.isSold ? 'sprzedane 👀' : 'dodaj sosu'}
+                </Text>
+              </Pressable>
+              <Pressable onPress={() => Linking.openURL(item.link)} hitSlop={8}>
+                <Text style={styles.vintedLink}>zobacz na vinted</Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+
+        <Animated.View
+          style={[styles.face, backStyle]}
+          pointerEvents={showSauce ? 'auto' : 'none'}>
+          <View style={styles.sauceCard}>
+            <PhotoCarousel photos={item.sauceUrls} placeholder="🥫" />
+            <Pressable style={styles.backBtn} onPress={closeSauce} hitSlop={8}>
+              <Image
+                source={require('../../assets/images/arrow-back.svg')}
+                style={styles.backIcon}
+              />
+            </Pressable>
+          </View>
+        </Animated.View>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  slide: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  scene: {
+    flex: 1,
+  },
+  face: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backfaceVisibility: 'hidden',
+  },
+  card: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    gap: 16,
+    shadowColor: colors.text,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  // sauce face: the carousel IS the whole card
+  sauceCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: colors.text,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  backBtn: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backIcon: {
+    width: 20,
+    height: 20,
+  },
+  photoWrap: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: colors.background,
+  },
+  carousel: { flex: 1 },
+  dots: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+  },
+  dotActive: {
+    backgroundColor: colors.primary,
+    width: 14,
+  },
+  photoPlaceholder: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoPlaceholderText: { fontSize: 64 },
+  details: {
+    paddingHorizontal: 8,
+    gap: 12,
+  },
+  title: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontFamily: fonts.bold,
+    color: colors.heading,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: 12,
+  },
+  size: {
+    fontSize: 13,
+    fontFamily: fonts.semiBold,
+    color: colors.text,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  price: {
+    fontSize: 17,
+    fontFamily: fonts.bold,
+    color: colors.primary,
+  },
+  priceShippingLabel: {
+    fontSize: 12,
+    fontFamily: fonts.regular,
+    color: colors.text,
+    opacity: 0.6,
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontFamily: fonts.regular,
+    color: colors.text,
+  },
+  actions: {
+    gap: 12,
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+  },
+  // web .btn--small: smaller font + tighter padding, still full width
+  primaryBtn: {
+    ...primaryButtonStyle,
+    alignSelf: 'stretch',
+    padding: 10,
+  },
+  primaryBtnText: {
+    color: '#FAFAFA',
+    fontSize: 14,
+    fontFamily: fonts.semiBold,
+  },
+  btnDisabled: {
+    opacity: 0.7,
+  },
+  vintedLink: {
+    color: colors.heading,
+    fontSize: 14,
+    fontFamily: fonts.semiBold,
+    textDecorationLine: 'underline',
+  },
+});

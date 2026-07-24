@@ -1,0 +1,5 @@
+{
+  "projectId": "c14e0093-8658-4dd3-8d8a-691e93501c64",
+  "readmeHeader": ".design-sync/conventions.md",
+  "note": "Tokens-only sync (no components). Bundle is hand-authored in ds-bundle/ — see .design-sync/NOTES.md."
+}

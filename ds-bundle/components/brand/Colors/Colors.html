@@ -1,0 +1,29 @@
+<!-- @dsCard group="Colors" -->
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <title>mayo — kolory</title>
+  <link rel="stylesheet" href="../../../styles.css">
+  <style>
+    .swatches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; }
+    .swatch { border-radius: 12px; overflow: hidden; border: 1px solid var(--mayo-border); background: #fff; }
+    .swatch__chip { height: 56px; }
+    .swatch__label { padding: 8px 10px; font-size: 12px; }
+    .swatch__label strong { display: block; font-size: 12.5px; }
+  </style>
+</head>
+<body>
+  <div class="swatches">
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-orange)"></div><div class="swatch__label"><strong>--mayo-orange</strong>#F77710 · CTA</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-blue)"></div><div class="swatch__label"><strong>--mayo-blue</strong>#063DBF · nagłówki</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-text)"></div><div class="swatch__label"><strong>--mayo-text</strong>#1E1E1E · tekst</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-bg)"></div><div class="swatch__label"><strong>--mayo-bg</strong>#FFF7E3 · tło</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-bg-deep)"></div><div class="swatch__label"><strong>--mayo-bg-deep</strong>#FFECBC · gradient</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-error)"></div><div class="swatch__label"><strong>--mayo-error</strong>#900B09 · błędy</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-border)"></div><div class="swatch__label"><strong>--mayo-border</strong>#D9D9D9 · ramki</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-placeholder)"></div><div class="swatch__label"><strong>--mayo-placeholder</strong>#B3B3B3</div></div>
+    <div class="swatch"><div class="swatch__chip" style="background: var(--mayo-muted)"></div><div class="swatch__label"><strong>--mayo-muted</strong>#6F6F6F</div></div>
+  </div>
+</body>
+</html>

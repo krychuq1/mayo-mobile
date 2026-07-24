@@ -1,0 +1,17 @@
+/* mayo design tokens — source of truth: mayo-fe SCSS / mayo-dashboard styles.scss /
+   mayo-mobile src/lib/theme.ts. Keep all three in sync when the brand changes. */
+
+:root {
+  --mayo-orange: #F77710;
+  --mayo-blue: #063DBF;
+  --mayo-text: #1E1E1E;
+  --mayo-bg: #FFF7E3;
+  --mayo-bg-deep: #FFECBC;
+  --mayo-error: #900B09;
+  --mayo-border: #D9D9D9;
+  --mayo-border-focus: #A8A8A8;
+  --mayo-placeholder: #B3B3B3;
+  --mayo-white: #FAFAFA;
+  --mayo-muted: #6F6F6F;
+  --mayo-card-shadow: 0 2px 12px rgba(30, 30, 30, 0.08);
+}
