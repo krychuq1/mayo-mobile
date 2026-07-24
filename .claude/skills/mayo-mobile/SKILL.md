@@ -382,9 +382,24 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
 - ⏳ **Pick up here:** dane/płatność profile screens are placeholders (Alert "wkrótce");
   maybe advent calendar screen.
 
+## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
+
+`env.ts` prod fallback is now the real `https://server.mayo-app.com` (EXPO_PUBLIC_BACKEND_URL
+still overrides). app.json: name "Mayo", android.package `com.mayoapp.mobile`. Build:
+`npx expo prebuild --platform android` then `android\gradlew.bat assembleRelease` with
+`JAVA_HOME=C:\Program Files\Android\Android Studio\jbr`, `ANDROID_HOME=%LOCALAPPDATA%\
+Android\Sdk`, **`GRADLE_USER_HOME=E:\gradle-cache`** (C: is 97% full). ~23 min first build,
+output `android\app\build\outputs\apk\release\app-release.apk` (~100 MB, debug-signed —
+fine for sideloading, NOT for Play Store). ⚠️ Known trap: RN 0.85's
+`node_modules/@react-native/gradle-plugin/settings.gradle.kts` pins foojay-resolver 0.5.0
+which CRASHES Gradle 9.3 ("JvmVendorSpec … IBM_SEMERU") — patch it to 1.0.0 after every
+npm install (or add patch-package if this becomes routine). `android/` is gitignored.
+Distribution: upload APK to the public media bucket, e.g.
+`aws s3 cp … s3://media.mayo-app.com/apk/mayo-prod-<date>.apk` (creds from mayo-ba .env)
+→ https://s3.eu-north-1.amazonaws.com/media.mayo-app.com/apk/mayo-prod-2026-07-24.apk
+
 ## Open TODOs
 
-- Production API URL: set `EXPO_PUBLIC_BACKEND_URL` (env.ts fallback is a placeholder).
 - Deep linking (Phase 2): make the Gmail click OPEN THE APP directly. Requires a real build
   (EAS dev build APK — Expo Go cannot register Android App Links): intent filter for
   https://mayo-app.com/activate-user/* in app.json + `assetlinks.json` hosted on the domain +

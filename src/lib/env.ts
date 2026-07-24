@@ -26,7 +26,7 @@ function resolveDevHost(): string {
 const DEV_BACKEND_PORT = 3003;
 
 const PROD_BACKEND_URL =
-  process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://api.change-me.example.com';
+  process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://server.mayo-app.com';
 
 export const BACKEND_URL = __DEV__
   ? `http://${resolveDevHost()}:${DEV_BACKEND_PORT}`
