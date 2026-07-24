@@ -15,7 +15,7 @@ description: Project knowledge base for the Mayo mobile app (Expo/React Native) 
 | Repo | Path | What it is |
 | --- | --- | --- |
 | mayo-mobile | `E:\mayo-mobile` | This app. React Native + **Expo SDK 56** + TypeScript, expo-router. |
-| mayo-ba | `E:\mayo-ba` | NestJS + Prisma backend. **Source of truth for the API.** Listens on `0.0.0.0:3003` (`src/main.ts`) — **NOT 3000**, which is occupied by digibate-ba on this PC. Auth: `src/auth/auth.controller.ts`. |
+| mayo-ba | `E:\mayo-ba` | NestJS + Prisma backend. **Source of truth for the API.** Port is env-driven since 2026-07-24: `PORT` in `.env` — local dev = **3003** (3000 taken by digibate-ba on this PC), prod = default 3000 behind nginx. Auth: `src/auth/auth.controller.ts`. GitHub: krychuq1/mayo-ba (branches: develop = active work, prod = deployed, master = default/registers workflows). |
 | mayo-fe | `E:\mayo-fe` | Old Angular web app — reference implementation. Auth logic: `src/app/services/auth.service.ts`, guard in `auth.guard.ts`. |
 | mayo-dashboard | `E:\mayo-dashboard` | Angular 16 admin panel (NgModule, SCSS, port 4200). Routes: `/` = mayo-app items admin, `/vinted-calendar` = advent-calendar admin. See its own section below. |
 
@@ -255,6 +255,32 @@ to everything except the login call, and on any 401 clears the token so the moda
   `.env` AWS key (IAM user `mayo-app`, acct 767397855093) has no rights on this bucket.
 - Removed 2026-07-23: old single-view `components/dashboard`, broken `day.service.ts`
   (imported nonexistent `api.config`), stray NestJS guard in `src/auth/`.
+
+## mayo-ba prod deploy (WORKING since 2026-07-24)
+
+Push to `prod` of krychuq1/mayo-ba → `.github/workflows/deploy.yml` (also
+workflow_dispatch). **Build happens ON THE CI RUNNER** (npm ci + prisma generate + nest
+build → tar dist), then scp + raw ssh to EC2: git checkout -f -B prod, `npm ci
+--omit=dev` (prisma is a runtime dep now so the CLI survives prod-only installs),
+prisma generate + migrate deploy, swap dist, `pm2 restart main --update-env || pm2
+start dist/src/main.js --name main`, pm2 save, local health check. NEVER build on the
+box — the original 1 GB instance thrashed into a full prod outage doing npm ci while
+serving (SSH unreachable, needed reboot).
+
+- Server (since 2026-07-24 resize): **ec2-51-21-219-231.eu-north-1.compute.amazonaws.com**,
+  ubuntu, 2 GB/2 vCPU, app at `~/mayo-ba` (pm2 process `main` → dist/src/main.js, port
+  3000, nginx in front, DB = RDS `database-1.cz2ck28c2d38.eu-north-1.rds.amazonaws.com`).
+  Keys in `C:\Users\krysn\OneDrive\Pulpit\mayo\`: `mayo.pem` (OpenSSH, works) and
+  `mayo.ppk` (PuTTY/plink). GH Actions uses a dedicated deploy key (secret
+  SSH_PRIVATE_KEY on mayo-ba; 2nd line of server authorized_keys). node/pm2 via nvm —
+  ALWAYS `source ~/.nvm/nvm.sh` in non-interactive ssh. `.env` is root-owned (sudo tee to
+  edit; passwordless sudo ok) and has ADMIN_LOGIN/ADMIN_PASSWORD (verified live: admin
+  JWT flow works on prod, old ADMIN_KEY header rejected). pm2 does NOT resurrect on boot.
+- ⚠️ The OLD instance still answers at 13.63.158.99 (nginx 502, dead app) and
+  **server.mayo-app.com DNS still points at it** — user must repoint the A record to
+  51.21.219.231 (Elastic IP recommended) and then kill the old box.
+- GitHub quirk: workflows only REGISTER once the file exists on the default branch
+  (master) — a prod-only workflow file never triggers; that cost one silent no-run.
 
 ## Running & testing
 
