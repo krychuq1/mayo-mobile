@@ -17,6 +17,7 @@ export const colors = {
   inputBorder: '#D9D9D9',
   inputBorderFocus: '#A8A8A8',
   placeholder: '#B3B3B3',
+  muted: '#6F6F6F',
 };
 
 export const fonts = {

@@ -17,8 +17,21 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import type { VintedItem } from '@/lib/api';
+import type { VintedItem, VintedItemTag } from '@/lib/api';
 import { colors, fonts, primaryButtonStyle } from '@/lib/theme';
+
+// Per-tag chip colors from the Claude Design product-detail template
+// (templates/product-detail/ProductDetail.dc.html).
+const TAG_CHIP: Record<
+  VintedItemTag,
+  { bg: string; text: string; border?: string }
+> = {
+  tag1: { bg: colors.primary, text: '#FAFAFA' },
+  tag2: { bg: colors.heading, text: '#FAFAFA' },
+  tag3: { bg: colors.gradientBottom, text: colors.text },
+  tag4: { bg: colors.text, text: '#FAFAFA' },
+  tag5: { bg: '#FAFAFA', text: colors.text, border: colors.inputBorder },
+};
 
 // Flip physics ported from mayo-fe calendar-day.scss: 4.5 spins, fast start / slow stop.
 const FLIP_DEG = 1620;
@@ -140,6 +153,27 @@ export function VintedItemCard({
             <View style={styles.photoWrap}>
               <PhotoCarousel photos={item.vintedItemUrls} />
             </View>
+
+            {!!item.tags?.length && (
+              <View style={styles.tagsRow}>
+                {item.tags.map((tag) => (
+                  <View
+                    key={tag}
+                    style={[
+                      styles.tagChip,
+                      { backgroundColor: TAG_CHIP[tag].bg },
+                      TAG_CHIP[tag].border != null && {
+                        borderWidth: 1,
+                        borderColor: TAG_CHIP[tag].border,
+                      },
+                    ]}>
+                    <Text style={[styles.tagChipText, { color: TAG_CHIP[tag].text }]}>
+                      {tag}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
             <View style={styles.details}>
               <Text style={styles.title} numberOfLines={1}>
@@ -284,6 +318,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   photoPlaceholderText: { fontSize: 64 },
+  tagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 8,
+  },
+  tagChip: {
+    borderRadius: 999,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  tagChipText: {
+    fontSize: 12,
+    fontFamily: fonts.semiBold,
+  },
   details: {
     paddingHorizontal: 8,
     gap: 12,

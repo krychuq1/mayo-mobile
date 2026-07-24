@@ -42,8 +42,22 @@ src/
     check-email.tsx   # polls activation every 3s + on app foreground
     home.tsx          # vinted-items feed: full-screen snap cards (FlatList pagingEnabled,
                       #   card height = list viewport via onLayout), pull-to-refresh,
-                      #   top bar = logo + "Wyloguj się"; data: vintedApi.getGeneral()
+                      #   top bar = logo (28px) + ProfileMenu; FILTRUJ row opens FilterSheet;
+                      #   client-side filtering: price range (priceWithShipping, bounds
+                      #   floor/ceil from loaded items, null = off) + tag multi-select (OR);
+                      #   empty-filter state "nic nie pasuje do filtrów 😢" + wyczyść;
+                      #   data: vintedApi.getGeneral()
   components/
+    profile-menu.tsx  # "mój profil" pill + dropdown (Claude Design template): dane/płatność
+                      #   = Alert "wkrótce 👀" placeholders, wyloguj się (red + logout.svg).
+                      #   No outside-tap dismiss (toggle only). topBar needs zIndex 30.
+    filter-sheet.tsx  # full-screen filter Modal (design template): ZAKRES CEN dual slider +
+                      #   TAGI dark/white toggle pills + WYCZYŚĆ (bg-deep) / ZOBACZ (dark)
+                      #   square buttons. NO statusBarTranslucent (header collided w/ status bar).
+    range-slider.tsx  # custom dual-thumb PanResponder slider (2px dark track, 14px SQUARE
+                      #   thumbs per design); live values via ref so responders stay fresh.
+                      #   New icons in assets/images: chevron-up/down (blue), filter-sliders,
+                      #   close-x (dark), logout (red) — static SVGs, rendered by expo-image.
     vinted-item-card.tsx  # feed slide implementing the Claude Design "Product detail"
                           #   template (Mayo Design System project, templates/product-detail/):
                           #   white card w/ swipeable photo carousel (orange position dots,
@@ -127,7 +141,24 @@ Other mayo-ba endpoints available (for future features): `GET /auth/check-open-a
 `dayId` 1-24 = advent-calendar item (FK → global `Day.dayNumber`), `dayId: null` = **general
 item to be shown in mayo-app** outside the calendar. Fields: title, size, description?,
 price, priceWithShipping, sauce? (optional since migration `vinted_item_optional_sauce`),
-link, vintedItemUrls[] (non-empty), sauceUrls[] (optional/empty ok), isSold.
+link, vintedItemUrls[] (non-empty), sauceUrls[] (optional/empty ok), isSold,
+tags[] (enum `VintedItemTag` = tag1…tag5 — placeholder names to be renamed later; zero or
+many per item; migration `20260724100956_vinted_item_tags`; default `[]`). ⚠️ The
+`VintedItemController` has a SCOPED `ValidationPipe({ whitelist: true })` (added 2026-07-24)
+— there is NO global pipe on purpose: other controllers (e.g. `RegisterModel` on `/auth`)
+have undecorated DTOs that class-validator 0.14 would reject wholesale. Bad tags → 400 with
+a Polish-free class-validator message; before the pipe they surfaced as a misleading 404.
+Dashboard form has toggleable tag pills; dashboard card shows tag chips.
+Tag chip design (Claude Design product-detail template, implemented 2026-07-24 in mobile
+`vinted-item-card.tsx` — chips between photo and title — and in the dashboard): per-tag
+colors — tag1 orange bg/white text, tag2 blue bg/white, tag3 `--mayo-bg-deep` #FFECBC
+bg/dark text, tag4 `--mayo-text` #1E1E1E bg/white, tag5 white bg/dark text + `--mayo-border`
+#D9D9D9 border; all 12px semibold, padding 4px 12px, radius 999. Dashboard: global
+`.tag-chip` + `.tag-chip--tagN` classes in `styles.scss` (kept GLOBAL on purpose —
+component-scoped styles would beat them on specificity via Angular's `_ngcontent`
+attribute); card uses them directly, form pills wear their tag color always with
+opacity 0.35 when unselected / 1 when selected. Mobile: `TAG_CHIP` map in
+vinted-item-card.tsx; `VintedItemTag` type in `src/lib/api.ts`.
 
 | Route | Auth | Purpose |
 | --- | --- | --- |
@@ -291,7 +322,21 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
 - ✅ 2026-07-24: proper admin login replaced the raw ADMIN_KEY (see the "admin" paragraph
   and mayo-dashboard section). Verified live: wrong creds 401, real creds → token → admin
   create/delete OK, old ADMIN_KEY header rejected; dashboard dev build passes.
-- ⏳ **Pick up here:** commit all three repos; then maybe advent calendar screen.
+- ✅ 2026-07-24: vinted item tags added (enum tag1…tag5, multi-select pills in the
+  dashboard form, chips on the dashboard card; see the vinted-items section). Verified
+  live: create/update/clear tags OK, invalid tag → 400, dashboard dev build passes.
+  NOT committed yet (mayo-ba + mayo-dashboard both have the tag changes pending).
+- ✅ 2026-07-24 (later): tag chips styled per the updated Claude Design product-detail
+  template in BOTH the mobile card and the dashboard (see tag-chip design notes above).
+  Mobile typecheck + dashboard dev build pass; not yet eyeballed in the emulator.
+- ✅ 2026-07-24 (later still): design template round 2 implemented in mobile — "mój profil"
+  dropdown (replaces top-bar Wyloguj się), FILTRUJ + full-screen filter sheet (price range
+  dual slider + tag pills), client-side feed filtering. Verified end-to-end in the emulator
+  (login → feed → dropdown → filter tag2+max 71 → feed filtered correctly → wyczyść resets).
+  Test item deleted after; emutest user left signed in in the emulator.
+- ⏳ **Pick up here:** commit pending work (mobile: tags+filters+profile; mayo-ba+dashboard:
+  tags); dane/płatność profile screens are placeholders (Alert "wkrótce"); maybe advent
+  calendar screen.
 
 ## Open TODOs
 

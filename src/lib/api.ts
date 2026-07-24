@@ -28,6 +28,10 @@ export interface UserWithCalendarData {
   adventCalendar: AdventCalendarDay[];
 }
 
+/** Placeholder tag names for now — mirrors mayo-ba enum VintedItemTag. */
+export const VINTED_ITEM_TAGS = ['tag1', 'tag2', 'tag3', 'tag4', 'tag5'] as const;
+export type VintedItemTag = (typeof VINTED_ITEM_TAGS)[number];
+
 export interface VintedItem {
   id: number;
   title: string;
@@ -42,6 +46,7 @@ export interface VintedItem {
   /** 1-24 = advent-calendar day, null = general mayo-app item */
   dayId: number | null;
   isSold: boolean;
+  tags: VintedItemTag[];
   createdAt: string;
 }
 
