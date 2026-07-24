@@ -334,9 +334,10 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   dual slider + tag pills), client-side feed filtering. Verified end-to-end in the emulator
   (login → feed → dropdown → filter tag2+max 71 → feed filtered correctly → wyczyść resets).
   Test item deleted after; emutest user left signed in in the emulator.
-- ⏳ **Pick up here:** commit pending work (mobile: tags+filters+profile; mayo-ba+dashboard:
-  tags); dane/płatność profile screens are placeholders (Alert "wkrótce"); maybe advent
-  calendar screen.
+- ✅ 2026-07-24: all committed again (mayo-mobile 70649b1, mayo-ba 7f3de26, mayo-dashboard
+  036edff; nothing pushed).
+- ⏳ **Pick up here:** dane/płatność profile screens are placeholders (Alert "wkrótce");
+  maybe advent calendar screen.
 
 ## Open TODOs
 
