@@ -270,9 +270,9 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   start:prod` is broken). If `npm run start:dev` (watch) is running, killing the node child
   just makes the watcher respawn it. `prisma generate` fails with EPERM while the backend
   runs (engine DLL locked) — stop it first.
-- ⚠️ **Still nothing committed** in mayo-mobile (login feature), mayo-ba (activation page,
-  vinted-item changes + migration), or mayo-dashboard (redesign; whole tree is WIP).
-  Committing all three repos is overdue.
+- ✅ 2026-07-24: all three repos committed (mayo-mobile `master` 934745a, mayo-ba
+  `develop` 53d875b, mayo-dashboard `master` 2cd7907 — one batch commit each; nothing
+  pushed yet). mayo-mobile `.gitignore` now excludes `.idea/`.
 - ✅ Mobile feed DONE: home.tsx is now a TikTok-style vertical snap feed of general vinted
   items (one full-screen card per item), verified in the emulator end-to-end (login →
   feed → snap scroll). Emulator test trick: type email in app, then flip the flag in DB —
