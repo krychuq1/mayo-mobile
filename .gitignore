@@ -42,5 +42,8 @@ example
 /ios
 /android
 
+# signing secrets (upload keystore lives here; passwords in E:\gradle-cache\gradle.properties)
+/credentials/
+
 # IDE
 .idea/

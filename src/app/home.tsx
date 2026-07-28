@@ -21,7 +21,7 @@ import { useAuth } from '@/lib/auth-context';
 import { colors, fonts } from '@/lib/theme';
 
 export default function HomeScreen() {
-  const { status, signOut } = useAuth();
+  const { status, hasAccess, signOut } = useAuth();
 
   const [items, setItems] = useState<VintedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,10 +38,12 @@ export default function HomeScreen() {
     new Set(),
   );
 
-  // Guard: if we ever lose the session, bounce back to the gate.
+  // Guard: if we ever lose the session, bounce back to the gate;
+  // no started trial → paywall.
   useEffect(() => {
     if (status !== 'signedIn') router.replace('/');
-  }, [status]);
+    else if (hasAccess === false) router.replace('/paywall');
+  }, [status, hasAccess]);
 
   const load = useCallback(async () => {
     setError(null);

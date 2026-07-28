@@ -9,7 +9,8 @@ import {
   type ReactNode,
 } from 'react';
 
-import { authApi, type User } from './api';
+import { authApi, checkoutApi, type User } from './api';
+import { identifyPurchaser } from './purchases';
 
 const TOKEN_KEY = 'mayo_auth_token';
 
@@ -23,10 +24,17 @@ interface AuthState {
   status: AuthStatus;
   token: string | null;
   user: User | null;
+  /**
+   * Paywall gate: has the user started the app-subscription trial?
+   * Loaded together with the user, so it's a boolean whenever signedIn.
+   */
+  hasAccess: boolean | null;
   /** Request a login: stores the issued token and moves to pendingActivation. */
   requestLogin: (email: string) => Promise<void>;
   /** Poll once for activation; returns true and signs in when activated. */
   refreshActivation: () => Promise<boolean>;
+  /** Poll once for trial status (paywall screen); returns the fresh value. */
+  refreshAccess: () => Promise<boolean>;
   signOut: () => Promise<void>;
 }
 
@@ -36,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   const persistToken = useCallback(async (value: string | null) => {
     setToken(value);
@@ -58,10 +67,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const activated = await authApi.checkTokenStatus(stored);
         if (cancelled) return;
         if (activated) {
-          const me = await authApi.validateToken(stored);
+          const [me, access] = await Promise.all([
+            authApi.validateToken(stored),
+            checkoutApi.getSubscriptionStatus(stored),
+          ]);
           if (cancelled) return;
           setUser(me);
+          setHasAccess(access);
           setStatus('signedIn');
+          // Tie RevenueCat purchases to this user (no-op without a key / in Expo Go).
+          identifyPurchaser(me.email).catch(() => {});
         } else {
           setStatus('pendingActivation');
         }
@@ -82,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await authApi.register(email.trim().toLowerCase());
       await persistToken(res.token);
       setUser(null);
+      setHasAccess(null);
       setStatus('pendingActivation');
     },
     [persistToken],
@@ -91,21 +107,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!token) return false;
     const activated = await authApi.checkTokenStatus(token);
     if (!activated) return false;
-    const me = await authApi.validateToken(token);
+    const [me, access] = await Promise.all([
+      authApi.validateToken(token),
+      checkoutApi.getSubscriptionStatus(token),
+    ]);
     setUser(me);
+    setHasAccess(access);
     setStatus('signedIn');
+    identifyPurchaser(me.email).catch(() => {});
     return true;
+  }, [token]);
+
+  const refreshAccess = useCallback(async () => {
+    if (!token) return false;
+    const access = await checkoutApi.getSubscriptionStatus(token);
+    setHasAccess(access);
+    return access;
   }, [token]);
 
   const signOut = useCallback(async () => {
     await persistToken(null);
     setUser(null);
+    setHasAccess(null);
     setStatus('signedOut');
   }, [persistToken]);
 
   const value = useMemo<AuthState>(
-    () => ({ status, token, user, requestLogin, refreshActivation, signOut }),
-    [status, token, user, requestLogin, refreshActivation, signOut],
+    () => ({
+      status,
+      token,
+      user,
+      hasAccess,
+      requestLogin,
+      refreshActivation,
+      refreshAccess,
+      signOut,
+    }),
+    [status, token, user, hasAccess, requestLogin, refreshActivation, refreshAccess, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

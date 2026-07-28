@@ -50,8 +50,9 @@ export default function CheckEmailScreen() {
   }, [check]);
 
   // When activation flips to signedIn, leave this screen.
+  // Back through the index gate — it decides between the feed and the paywall.
   useEffect(() => {
-    if (status === 'signedIn') router.replace('/home');
+    if (status === 'signedIn') router.replace('/');
     if (status === 'signedOut') router.replace('/login');
   }, [status]);
 

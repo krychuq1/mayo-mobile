@@ -32,7 +32,9 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="check-email" />
+        <Stack.Screen name="paywall" />
         <Stack.Screen name="home" />
+        <Stack.Screen name="platnosc" />
       </Stack>
     </AuthProvider>
   );

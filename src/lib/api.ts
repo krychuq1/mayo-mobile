@@ -124,6 +124,15 @@ export const authApi = {
   },
 };
 
+// --- Checkout / paywall (mayo-ba /checkout) ---
+
+export const checkoutApi = {
+  /** GET /checkout/subscription-status — has the user started the trial? */
+  getSubscriptionStatus(token: string) {
+    return request<boolean>('/checkout/subscription-status', { token });
+  },
+};
+
 // --- Vinted items (managed in mayo-dashboard) ---
 
 export const vintedApi = {

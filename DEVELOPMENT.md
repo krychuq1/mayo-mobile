@@ -29,9 +29,11 @@ src/
     auth-context.tsx  # AuthProvider: token in secure-store + auth status machine
   app/                # expo-router file-based routes
     _layout.tsx       # wraps app in AuthProvider + Stack navigator
-    index.tsx         # entry gate → redirects based on auth status
+    index.tsx         # entry gate → redirects based on auth status + trial access
     login.tsx         # enter email → POST /auth (sends magic link)
     check-email.tsx   # polls check-token-status until the link is clicked
+    paywall.tsx       # 7-day-trial paywall (design template) → RevenueCat store sheet
+    platnosc.tsx      # profile "płatność": sub status + manage/cancel via Google Play
     home.tsx          # signed-in screen: full-screen vinted-items feed (snap scroll,
                       # one item per screen, pull-to-refresh, sign out in the top bar)
   components/
@@ -69,8 +71,58 @@ the link and switching back to the app signs you in instantly.
 | `POST /auth` | Register/login; emails magic link; returns JWT |
 | `GET /auth/check-token-status` | Has the magic link been clicked yet? (poll) |
 | `GET /auth/validate-token` | Load the current user for a valid token |
+| `GET /checkout/subscription-status` | Paywall gate: has the user started the trial? |
 
 All authenticated calls send `Authorization: Bearer <token>`.
+
+### Paywall / free trial (added 2026-07-26; store-only since 2026-07-28)
+
+After login, a user who never started the **7-day free trial** is gated away from
+the feed onto `app/paywall.tsx` (Claude Design `templates/paywall/Paywall.dc.html`:
+"7 DNI ZA 0 ZŁ" badge, 45,00 zł/mies. after trial, "zaczynamy!" CTA, "nie teraz,
+dzięki" = sign out). The CTA opens the **native store payment sheet via
+RevenueCat** (`purchaseSubscription()`); the RevenueCat → mayo-ba webhook records
+a `Purchase` row with `productId: 'app-subscription'`. The paywall polls
+`GET /checkout/subscription-status` every 3s (plus on app foreground) and routes
+to the feed once it flips true. `hasAccess` lives in `auth-context.tsx` and is
+loaded together with the user, so the `index.tsx` gate can route
+signedIn → `hasAccess ? /home : /paywall`. The old Stripe checkout path was
+removed from the app 2026-07-28 (mobile is store-billed only; Stripe stays for
+the web masterclass product). In Expo Go the CTA shows an info message — grant a
+dev user access by inserting a Purchase row into the local DB (see below).
+
+`app/platnosc.tsx` (profile → płatność): shows subscription status (from
+`hasAccess`) + 45 zł price and deep-links to Google Play's subscription manager
+for cancel/manage (`play.google.com/store/account/subscriptions?sku=...`) —
+per Play policy cancellation happens in the store; the RevenueCat `EXPIRATION`
+webhook then revokes access at period end.
+
+Local-dev access toggle (in E:\mayo-ba, against the local DB):
+grant: `INSERT INTO "Purchase" ("userEmail","productId","stripeCustomerId") VALUES ('<email>','app-subscription','dev');`
+reset: `DELETE FROM "Purchase" WHERE "userEmail"='<email>' AND "productId"='app-subscription';`
+(run via `npx prisma db execute --schema prisma --stdin`)
+
+### RevenueCat / store billing (added 2026-07-27, for store releases)
+
+Google Play / App Store require **native IAP** for digital subscriptions, so
+store builds bill through **RevenueCat** (`react-native-purchases`) instead of
+Stripe. `src/lib/purchases.ts` wraps the SDK behind `nativeBillingAvailable()`:
+it's active only when `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` (or `_IOS_KEY`) is
+set **and** the app is not running in Expo Go (native module). `auth-context`
+calls `identifyPurchaser(email)` on sign-in so RevenueCat's `app_user_id` is
+the user's email; the paywall CTA then uses the native store sheet
+(`purchaseSubscription()`), falling back to the Stripe browser flow otherwise.
+
+Backend: RevenueCat webhook → mayo-ba `POST /revenuecat-webhook`
+(`src/revenuecat-webhook/`), authenticated by exact match of the
+`Authorization` header against `.env` `REVENUECAT_WEBHOOK_AUTH` (set the same
+value in RevenueCat → Integrations → Webhooks). INITIAL_PURCHASE / RENEWAL /
+UNCANCELLATION create the same `app-subscription` Purchase row
+(`stripeCustomerId: 'revenuecat'`); **EXPIRATION deletes it** — store subs do
+revoke access, unlike the Stripe flow. The app's `hasAccess` gate is unchanged.
+Webhook cycle verified locally 2026-07-27 (401 / grant / idempotent dup /
+revoke / anonymous-id ignore). ⚠️ Purchases only work in a dev/store build,
+after the RevenueCat project + Play subscription product exist.
 
 ---
 
@@ -137,6 +189,13 @@ gone as of 2026-07-24):
 - `/` — **mayo-app items**: general Vinted items (no calendar day) that the mobile app
   should display.
 - `/vinted-calendar` — the 24-day advent-calendar admin (one card per day).
+
+Dashboard item cards (2026-07-26) are equal-height: a fixed-height 4:3 photo carousel
+(swipe/scroll through all photos, orange position dots + hover arrows/clickable dots
+for mouse users — same look as the mobile app),
+title/prices, tag chips, and vinted/sauce links always visible; long descriptions are
+clamped to 2 lines with a chevron right under them (shown only when the text actually
+overflows) that toggles the full description.
 
 Backend support (mayo-ba `/vinted-item`): `VintedItem.dayId` is now optional —
 `null` means "general mayo-app item". The mobile app can fetch them **without auth**:

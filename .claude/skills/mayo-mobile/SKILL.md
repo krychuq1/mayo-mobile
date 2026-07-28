@@ -31,7 +31,9 @@ src/
                       #   from Constants.expoConfig.hostUri); prod = EXPO_PUBLIC_BACKEND_URL
     api.ts            # typed fetch client + authApi (mirrors mayo-ba /auth)
     auth-context.tsx  # AuthProvider — token in expo-secure-store, status machine:
-                      #   loading | signedOut | pendingActivation | signedIn
+                      #   loading | signedOut | pendingActivation | signedIn;
+                      #   also hasAccess (trial started? loaded WITH the user, so
+                      #   signedIn ⇒ hasAccess is a boolean) + refreshAccess()
   components/
     screen.tsx        # brand gradient + SafeArea wrapper (wrap every screen)
     mayo-logo.tsx     # orange wordmark image
@@ -39,7 +41,14 @@ src/
     _layout.tsx       # Inter font loading (splash held until ready) + AuthProvider + Stack
     index.tsx         # entry gate → redirect by auth status
     login.tsx         # welcome-screen port: logo/sosik/clothes + email form (Polish)
-    check-email.tsx   # polls activation every 3s + on app foreground
+    check-email.tsx   # polls activation every 3s + on app foreground; on signedIn
+                      #   routes to '/' so the index gate decides feed vs paywall
+    paywall.tsx       # 7-day-trial paywall (Claude Design templates/paywall/): white
+                      #   card w/ "7 DNI ZA 0 ZŁ" badge, 45,00 zł/mies., "zaczynamy!"
+                      #   → POST /checkout/subscription → Linking.openURL(stripe url);
+                      #   polls refreshAccess every 3s + on foreground → /home when
+                      #   trial recorded; "nie teraz, dzięki" = signOut. Verified
+                      #   end-to-end in emulator 2026-07-26 (real Stripe test payment).
     home.tsx          # vinted-items feed: full-screen snap cards (FlatList pagingEnabled,
                       #   card height = list viewport via onLayout), pull-to-refresh,
                       #   top bar = logo (28px) + ProfileMenu; FILTRUJ row opens FilterSheet;
@@ -71,6 +80,16 @@ src/
                           #   (assets/images/arrow-back.svg, copied from mayo-fe) that
                           #   spins it back. Verified in emulator 2026-07-23.
                           #   "zobacz na vinted" = underlined blue text link (per design).
+                          #   Description (2026-07-26, per design template): clamped to
+                          #   2 lines; "więcej ⌄" / "mniej ⌃" toggle (chevron-up/down
+                          #   svgs, 13px semibold heading-blue) shown only when the text
+                          #   overflows (hidden unclamped Text copy + onTextLayout counts
+                          #   lines). Expanded = photo/tags/title/meta HIDDEN, full desc
+                          #   in a ScrollView takes over the card (design's sc-if
+                          #   descCollapsed pattern; needs nestedScrollEnabled — the
+                          #   feed is a vertical paging FlatList, Android won't scroll
+                          #   a nested vertical ScrollView without it). Size text truncates
+                          #   (numberOfLines=1 + flexShrink) so the price stays on-screen.
 ```
 
 Path alias: `@/*` → `src/*`. Typecheck with `npx tsc --noEmit`.
@@ -217,6 +236,71 @@ Dashboard: sauce-images field in `vinted-item-form` has an upload button ("wgraj
 z dysku 📷") → `services/media.service.ts` → appends returned URLs into the `sauceUrls`
 textarea; client-side validates type/count/size first with Polish messages.
 
+## Paywall / app subscription (added 2026-07-26, verified end-to-end)
+
+Signed-in users who never started the **7-day free trial** are gated off the feed
+onto `app/paywall.tsx` (see app-structure notes). Trial state = a `Purchase` row
+with `productId: 'app-subscription'` (constant `APP_SUBSCRIPTION_PRODUCT_ID` in
+mayo-ba `src/checkout/checkout.service.ts`). Flow:
+
+1. Gate: `index.tsx` routes signedIn → `hasAccess ? /home : /paywall`; `home.tsx`
+   also bounces `hasAccess === false` → paywall. `hasAccess` is fetched in
+   auth-context together with validate-token (`GET /checkout/subscription-status`).
+2. CTA "zaczynamy!" → `POST /checkout/subscription` (Bearer) → mayo-ba creates/reuses
+   the Stripe customer (`User.stripeCustomerId`, created with the user's email) and
+   a Checkout session: `mode: subscription`, `subscription_data.trial_period_days: 7`,
+   price `.env STRIPE_SUBSCRIPTION_PRICE_ID` (test: price_1TxVBALnLWCvutZzixy1PZDM,
+   45 zł/mies., product prod_UxQ1CiL20Fii8y "Mayo — subskrypcja aplikacji"),
+   `success_url = CLIENT_URL + 'trial-success'` (branded Polish page on the root
+   controller, like activate-user). App opens the URL via `Linking.openURL`.
+3. Webhook `POST /checkout-webhook` (`checkout.session.completed`): sessions with
+   `mode === 'subscription'` upsert the user + create the app-subscription Purchase
+   + Slack paymentCompleted, then RETURN EARLY — the masterclass email flow below
+   only runs for one-time `payment` sessions. Dev webhook delivery = user runs
+   `stripe listen --forward-to localhost:3003/checkout-webhook` (secret in `.env`
+   matches the listener).
+4. Paywall polls `GET /checkout/subscription-status` every 3s + on app foreground →
+   flips to the feed when the webhook lands. "nie teraz, dzięki" = signOut.
+
+Testing: Stripe test card `4242 4242 4242 4242` (any future expiry/CVC). Reset a
+user to "no trial" (in E:\mayo-ba):
+`echo "DELETE FROM \"Purchase\" WHERE \"userEmail\" = '<email>' AND \"productId\" = 'app-subscription';" | npx prisma db execute --schema prisma --stdin`
+A signed webhook can be forged for tests with `stripe.webhooks.generateTestHeaderString`
++ the `.env` secret (see 2026-07-26 session). The OLD `GET /checkout` masterclass
+flow (mode payment, anonymous customer) is untouched. ⚠️ krys.nagorny@gmail.com has
+a test purchase + trialing test-mode subscription in the LOCAL dev DB (from the
+verification run). ⚠️ **Prod TODO:** create the live-mode 45 zł/mies. recurring
+price and set `STRIPE_SUBSCRIPTION_PRICE_ID` in the server `.env` (root-owned,
+sudo tee) — without it `POST /checkout/subscription` 500s on prod.
+
+### RevenueCat / store billing (added 2026-07-27, code done, dashboards pending)
+
+Store releases must use native IAP, so the paywall CTA prefers **RevenueCat**
+(`react-native-purchases`, installed) and falls back to the Stripe browser flow.
+
+- `src/lib/purchases.ts`: `nativeBillingAvailable()` = env key set AND not Expo
+  Go (`Constants.appOwnership === 'expo'`); lazy `import()` of the SDK so Expo
+  Go never touches the native module. Keys: `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
+  / `EXPO_PUBLIC_REVENUECAT_IOS_KEY` (public SDK keys — NOT yet set; user is
+  creating the RevenueCat project). `identifyPurchaser(email)` configures with
+  `appUserID = email` (called from auth-context on both sign-in paths);
+  `purchaseSubscription()` buys the current offering's first package, returns
+  'cancelled' on `userCancelled`.
+- mayo-ba `src/revenuecat-webhook/` (module in app.module): `POST
+  /revenuecat-webhook`, auth = exact `Authorization` header match vs `.env`
+  `REVENUECAT_WEBHOOK_AUTH` (dev value ends `...290250`; set the SAME string in
+  RevenueCat → Integrations → Webhooks; ⚠️ prod server `.env` too, sudo tee).
+  INITIAL_PURCHASE/RENEWAL/UNCANCELLATION → idempotent `app-subscription`
+  Purchase row (`stripeCustomerId: 'revenuecat'`) + Slack; EXPIRATION →
+  deleteMany of exactly those rows (revokes access — Stripe-billed rows are
+  untouched); non-email app_user_id (RC anonymous) → warn + 200. Verified
+  locally 2026-07-27: 401/grant/dup-noop/revoke/anon-ignore; test user cleaned.
+- Still needed before a store purchase can work: RevenueCat project + Android
+  API key in env, Play Console app (package com.mayoapp.mobile) with the
+  `mayo_monthly` 45 zł subscription + 7-day-trial offer, Play↔RevenueCat
+  service-account credentials, signed AAB on internal testing (dev build —
+  Expo Go can't run the SDK), webhook URL pointed at the prod server.
+
 ## mayo-dashboard (admin panel — redesigned 2026-07-23)
 
 Angular 16 NgModule app, `npm start` → http://localhost:4200. Auth (reworked 2026-07-24):
@@ -231,6 +315,22 @@ to everything except the login call, and on any 401 clears the token so the moda
   items via `/vinted-item/general`), `/vinted-calendar` → `VintedCalendarComponent`
   (24-day grid, CRUD per day). Shared components: `vinted-item-form` (emits the payload
   minus `dayId`; the page adds `dayId: day` or `null`) and `vinted-item-card`.
+- `vinted-item-card` (reworked 2026-07-26): equal-height cards (`:host` + `.item`
+  height 100%, grid cells stretch) with a collapsed/expanded state. Photo area = fixed
+  4:3 scroll-snap CAROUSEL of all vintedItemUrls, ported from the mobile PhotoCarousel
+  look: overlay dots bottom 10px centered gap 6, 6×6 rgba(255,255,255,.6) dots, active
+  = 14px `--mayo-orange` pill, dots hidden for 1 photo; active index tracked via
+  (scroll) → round(scrollLeft/clientWidth). Mouse support (scroll-snap alone is
+  touch/trackpad-only): overlay prev/next arrow chips (32px white circles, styled after
+  the mobile back-chip, hidden at the ends) + clickable dots, both calling
+  `scrollToPhoto` → `el.scrollTo({left: i*clientWidth, behavior:'smooth'})`. Tag chips + vinted/sauce links are ALWAYS
+  visible; the chevron (inline SVG, rotates 180° when open) sits DIRECTLY UNDER the
+  description and toggles ONLY the description between 2-line clamp
+  (`-webkit-line-clamp`) and full text. It renders only when the clamped text actually
+  overflows: `ngAfterViewChecked` measures `scrollHeight > clientHeight` on `#descEl`
+  (guarded compare + `cdr.detectChanges()` to avoid the changed-after-checked error;
+  skipped while expanded so the button stays for collapsing; empty
+  `@HostListener('window:resize')` forces a CD pass to re-measure on resize).
 - The form has an **import bar**: paste a Vinted listing link → "pobierz dane" → calls
   `POST /vinted-item/scrape` and prefills everything except the sauce fields.
 - Design: mayo design system as CSS variables in `src/styles.scss` (`--mayo-orange` etc. —
@@ -383,8 +483,54 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   Test item deleted after; emutest user left signed in in the emulator.
 - ✅ 2026-07-24: all committed again (mayo-mobile 70649b1, mayo-ba 7f3de26, mayo-dashboard
   036edff; nothing pushed).
-- ⏳ **Pick up here:** dane/płatność profile screens are placeholders (Alert "wkrótce");
-  maybe advent calendar screen.
+- ✅ 2026-07-26: **paywall DONE** (see "Paywall / app subscription" section): mayo-ba
+  subscription checkout + webhook branch + /trial-success page + subscription-status
+  endpoint; mobile paywall.tsx + hasAccess gate in auth-context/index/home. Verified
+  end-to-end in the emulator with a real Stripe test payment (paywall → checkout →
+  4242 card → trial-success → webhook → feed unlocked). NOT committed yet
+  (mayo-ba + mayo-mobile changes pending).
+- ✅ 2026-07-27: **RevenueCat code wired** (see "RevenueCat / store billing"):
+  react-native-purchases installed, purchases.ts wrapper + identify-on-sign-in +
+  paywall native/Stripe branching; mayo-ba /revenuecat-webhook verified locally.
+  NOT committed. User created the Google Play Console account (org "Krys Nago",
+  no app yet) and got instructions for: Play app creation + mayo_monthly sub,
+  RevenueCat project setup, Apple Developer enrollment (started, takes days).
+- ✅ 2026-07-28: **store setup + prod deploy done.** Play app "mayo" created
+  (internal testing, v1 AAB uploaded by user); subscription `mayo_monthly` /
+  base plan `monthly-base` (45 zł/mies., 7-day free-trial offer, new-customer
+  eligibility) ACTIVE; RevenueCat project 69393ebf fully wired (Play service
+  creds VALIDATED — product import worked same day; entitlement `access`;
+  `default` offering → one Monthly package with mayo_monthly:monthly-base;
+  webhook "production" → server.mayo-app.com/revenuecat-webhook, Both
+  Prod+Sandbox, filtered to Play app). Android public SDK key
+  `goog_WYneNIZpVXOtfMrltXXLwVAOtQC` in `E:\mayo-mobile\.env`
+  (EXPO_PUBLIC_REVENUECAT_ANDROID_KEY, committable). App icons replaced
+  (orange splat #F77710 on cream #FFF7E3 from blue-logo-sign.svg path, sharp
+  script; adaptiveIcon bg #FFF7E3; ios.icon entry removed → falls back to
+  icon.png). mayo-ba deployed to prod (develop=prod=1429cbe): webhook 401/200
+  + trial-success verified live; REVENUECAT_WEBHOOK_AUTH added to server .env.
+  **v2 AAB ready** (versionCode 2, upload-key signed, RC key embedded —
+  verified inside bundle) at android\...\bundle\release\app-release.aab.
+- ✅ 2026-07-28 (later): **REAL PURCHASE TEST PASSED** — user installed the v2
+  AAB from internal testing, sandbox trial purchase → RC webhook → feed. 🎉
+  Then app went **store-billing only** (user decision: no Stripe for mobile):
+  paywall Stripe fallback REMOVED (Expo Go CTA now shows an info message;
+  grant dev access via SQL INSERT of an app-subscription Purchase row —
+  snippet in DEVELOPMENT.md), `checkoutApi.startTrial` removed (backend
+  Stripe subscription endpoints still deployed but unused — prune later).
+  NEW `app/platnosc.tsx` (profile → płatność): status badge (hasAccess) +
+  45 zł + "zarządzaj subskrypcją" deep link to Play subscription manager
+  (cancel there → RC EXPIRATION webhook revokes at period end); wired from
+  profile-menu (dane still placeholder). ⚠️ typed-routes trap: new route
+  needed manual add to `.expo/types/router.d.ts` for tsc (regenerates on
+  `npm start`). tsc clean.
+- ⏳ **Pick up here:** local dev = Expo Go + local backend as before (billing
+  is the only thing needing store builds). mayo-mobile changes NOT committed
+  yet (paywall + RC + icons + platnosc). Still open: dane placeholder, advent
+  calendar screen, prune unused Stripe subscription code from mayo-ba, v2 AAB
+  with platnosc screen not yet rebuilt/uploaded (current store build lacks
+  it), iOS: Apple Developer enrollment in progress → RevenueCat iOS app +
+  EXPO_PUBLIC_REVENUECAT_IOS_KEY + App Store Connect product later.
 
 ## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
 
@@ -398,6 +544,24 @@ fine for sideloading, NOT for Play Store). ⚠️ Known trap: RN 0.85's
 `node_modules/@react-native/gradle-plugin/settings.gradle.kts` pins foojay-resolver 0.5.0
 which CRASHES Gradle 9.3 ("JvmVendorSpec … IBM_SEMERU") — patch it to 1.0.0 after every
 npm install (or add patch-package if this becomes routine). `android/` is gitignored.
+
+### Play-signed AAB (added 2026-07-28)
+
+Upload keystore: `E:\mayo-mobile\credentials\mayo-upload.keystore` (alias
+`mayo-upload`; `credentials/` gitignored). Passwords + paths live as `MAYO_UPLOAD_*`
+props in **`E:\gradle-cache\gradle.properties`** (GRADLE_USER_HOME). ⚠️ That file
+must be BOM-FREE: PowerShell `Add-Content -Encoding utf8` wrote a UTF-8 BOM which
+silently corrupted the first property key → Gradle fell back to DEBUG signing
+(caught 2026-07-28 via `keytool -printcert -jarfile`; fixed by rewriting with
+`UTF8Encoding($false)`). Signing block in `android/app/build.gradle`: signingConfigs
+gets a conditional `release` config reading `MAYO_UPLOAD_*` via findProperty, and
+buildTypes.release uses it when present (debug otherwise) — **re-add this block
+after every `expo prebuild --clean`** (android/ is regenerated). Build:
+`gradlew.bat bundleRelease` (same JAVA_HOME/ANDROID_HOME/GRADLE_USER_HOME as APK) →
+`android\app\build\outputs\bundle\release\app-release.aab` (~77 MB, versionCode 1).
+First AAB built 2026-07-28 to unlock Play subscription creation (Play requires an
+uploaded build with com.android.vending.BILLING — react-native-purchases brings the
+permission in via manifest merge; verified present in the merged manifest).
 Distribution: upload APK to the public media bucket, e.g.
 `aws s3 cp … s3://media.mayo-app.com/apk/mayo-prod-<date>.apk` (creds from mayo-ba .env)
 → https://s3.eu-north-1.amazonaws.com/media.mayo-app.com/apk/mayo-prod-2026-07-24.apk

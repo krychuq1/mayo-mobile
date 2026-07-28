@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth-context';
 
 /** Entry gate: route to the right screen based on auth status. */
 export default function Index() {
-  const { status } = useAuth();
+  const { status, hasAccess } = useAuth();
 
   if (status === 'loading') {
     return (
@@ -19,7 +19,10 @@ export default function Index() {
     );
   }
 
-  if (status === 'signedIn') return <Redirect href="/home" />;
+  // Paywall gate: signed in but trial never started → paywall instead of the feed.
+  if (status === 'signedIn') {
+    return <Redirect href={hasAccess ? '/home' : '/paywall'} />;
+  }
   if (status === 'pendingActivation') return <Redirect href="/check-email" />;
   return <Redirect href="/login" />;
 }

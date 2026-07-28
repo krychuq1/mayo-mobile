@@ -1,17 +1,23 @@
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '@/lib/theme';
 
 /** "mój profil" pill + dropdown from the Claude Design product-detail template.
- *  dane / płatność are placeholders until those screens exist. */
+ *  dane is a placeholder until that screen exists. */
 export function ProfileMenu({ onSignOut }: { onSignOut: () => void }) {
   const [open, setOpen] = useState(false);
 
   const comingSoon = () => {
     setOpen(false);
     Alert.alert('wkrótce 👀', 'ta sekcja jest jeszcze w budowie');
+  };
+
+  const openPlatnosc = () => {
+    setOpen(false);
+    router.push('/platnosc');
   };
 
   return (
@@ -36,7 +42,7 @@ export function ProfileMenu({ onSignOut }: { onSignOut: () => void }) {
           <Pressable style={styles.menuItem} onPress={comingSoon}>
             <Text style={styles.menuItemText}>dane</Text>
           </Pressable>
-          <Pressable style={styles.menuItem} onPress={comingSoon}>
+          <Pressable style={styles.menuItem} onPress={openPlatnosc}>
             <Text style={styles.menuItemText}>płatność</Text>
           </Pressable>
           <View style={styles.divider} />
