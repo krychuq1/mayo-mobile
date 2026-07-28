@@ -4,6 +4,7 @@ import {
   FlatList,
   Linking,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -120,6 +121,10 @@ export function VintedItemCard({
   // 0 = product front, 1 = sauce back
   const spin = useSharedValue(0);
   const [showSauce, setShowSauce] = useState(false);
+  // design template: expanding the description hides photo/tags/title/meta
+  // so the full text takes over the card ("więcej" / "mniej" chevron toggle)
+  const [descOpen, setDescOpen] = useState(false);
+  const [descLines, setDescLines] = useState(0);
 
   const frontStyle = useAnimatedStyle(() => ({
     transform: [
@@ -150,11 +155,13 @@ export function VintedItemCard({
           style={[styles.face, frontStyle]}
           pointerEvents={showSauce ? 'none' : 'auto'}>
           <View style={styles.card}>
-            <View style={styles.photoWrap}>
-              <PhotoCarousel photos={item.vintedItemUrls} />
-            </View>
+            {!descOpen && (
+              <View style={styles.photoWrap}>
+                <PhotoCarousel photos={item.vintedItemUrls} />
+              </View>
+            )}
 
-            {!!item.tags?.length && (
+            {!descOpen && !!item.tags?.length && (
               <View style={styles.tagsRow}>
                 {item.tags.map((tag) => (
                   <View
@@ -175,25 +182,70 @@ export function VintedItemCard({
               </View>
             )}
 
-            <View style={styles.details}>
-              <Text style={styles.title} numberOfLines={1}>
-                {item.title}
-              </Text>
-
-              <View style={styles.metaRow}>
-                <Text style={styles.size}>rozmiar {item.size}</Text>
-                <View style={styles.priceRow}>
-                  <Text style={styles.priceShippingLabel}>z wysyłką</Text>
-                  <Text style={styles.price}>
-                    {formatPln(item.priceWithShipping)}
+            <View style={[styles.details, descOpen && styles.detailsExpanded]}>
+              {!descOpen && (
+                <>
+                  <Text style={styles.title} numberOfLines={1}>
+                    {item.title}
                   </Text>
-                </View>
-              </View>
+
+                  <View style={styles.metaRow}>
+                    <Text style={styles.size} numberOfLines={1}>
+                      rozmiar {item.size}
+                    </Text>
+                    <View style={styles.priceRow}>
+                      <Text style={styles.priceShippingLabel}>z wysyłką</Text>
+                      <Text style={styles.price}>
+                        {formatPln(item.priceWithShipping)}
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
 
               {!!item.description && (
-                <Text style={styles.description} numberOfLines={2}>
-                  {item.description}
-                </Text>
+                <View style={descOpen && styles.descBlockExpanded}>
+                  {descOpen ? (
+                    <ScrollView
+                      style={styles.descScroll}
+                      nestedScrollEnabled
+                      showsVerticalScrollIndicator={false}>
+                      <Text style={styles.description}>{item.description}</Text>
+                    </ScrollView>
+                  ) : (
+                    <>
+                      <Text style={styles.description} numberOfLines={2}>
+                        {item.description}
+                      </Text>
+                      {/* invisible unclamped copy — measures the real line count */}
+                      <Text
+                        style={[styles.description, styles.descMeasure]}
+                        onTextLayout={(e) =>
+                          setDescLines(e.nativeEvent.lines.length)
+                        }>
+                        {item.description}
+                      </Text>
+                    </>
+                  )}
+                  {(descOpen || descLines > 2) && (
+                    <Pressable
+                      style={styles.descToggle}
+                      onPress={() => setDescOpen((o) => !o)}
+                      hitSlop={8}>
+                      <Text style={styles.descToggleText}>
+                        {descOpen ? 'mniej' : 'więcej'}
+                      </Text>
+                      <Image
+                        source={
+                          descOpen
+                            ? require('../../assets/images/chevron-up.svg')
+                            : require('../../assets/images/chevron-down.svg')
+                        }
+                        style={styles.descToggleIcon}
+                      />
+                    </Pressable>
+                  )}
+                </View>
               )}
             </View>
 
@@ -337,6 +389,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     gap: 12,
   },
+  // expanded description takes over the card (photo/tags/title/meta hidden)
+  detailsExpanded: {
+    flex: 1,
+  },
+  descBlockExpanded: {
+    flex: 1,
+  },
+  descScroll: {
+    flex: 1,
+  },
+  descMeasure: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    opacity: 0,
+    zIndex: -1,
+  },
+  descToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    marginTop: 6,
+  },
+  descToggleText: {
+    color: colors.heading,
+    fontSize: 13,
+    fontFamily: fonts.semiBold,
+  },
+  descToggleIcon: {
+    width: 14,
+    height: 14,
+  },
   title: {
     fontSize: 16,
     lineHeight: 21,
@@ -353,11 +439,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fonts.semiBold,
     color: colors.text,
+    flexShrink: 1,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
+    flexShrink: 0,
   },
   price: {
     fontSize: 17,
