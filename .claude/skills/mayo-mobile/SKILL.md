@@ -569,11 +569,17 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   **192.168.0.102** (dev CLIENT_URL in mayo-ba .env updated 2026-08-04).
   ⚠️ Emulator is signed in as krys.nagorny@gmail.com (NOT emutest) — the
   emutest row got a dev-grant app-subscription Purchase in local DB.
+- ✅ 2026-08-04 (even later): all committed (mayo-ba develop=prod=4fe6704
+  pushed + PROD-DEPLOYED — live checks green: mayo-app.com/privacy-policy
+  serves the new policy, server.mayo-app.com/delete-account renders the
+  form, garbage-token confirm → Ups page; mayo-mobile master 4c63757,
+  not pushed).
 - ⏳ **Pick up here — Play Store production checklist** (account is an
   ORGANIZATION → exempt from the 12-tester/14-day closed-testing rule):
-  1) ~~deploy privacy policy~~ DONE; 2) ~~account deletion flow~~ DONE
-  (commit + deploy mayo-ba to prod still pending); 3) ~~in-app
-  privacy-policy link~~ DONE (in dane screen) — rebuild as v4; 4) upload
+  1) ~~deploy privacy policy~~ DONE; 2) ~~account deletion flow~~ DONE +
+  deployed to prod; 3) ~~in-app privacy-policy link~~ DONE (in dane
+  screen) — rebuild as v4 (remember: re-add the signing block to
+  android/app/build.gradle if prebuild --clean, bump versionCode); 4) upload
   AAB to internal testing, smoke test; 5) Play Console declarations: privacy
   URL, App access (magic-link login → shared test-Gmail creds for
   reviewers), Data safety (email + purchase history, encrypted in transit,
