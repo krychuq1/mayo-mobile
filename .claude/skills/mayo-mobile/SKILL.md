@@ -578,8 +578,11 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   ORGANIZATION → exempt from the 12-tester/14-day closed-testing rule):
   1) ~~deploy privacy policy~~ DONE; 2) ~~account deletion flow~~ DONE +
   deployed to prod; 3) ~~in-app privacy-policy link~~ DONE (in dane
-  screen) — rebuild as v4 (remember: re-add the signing block to
-  android/app/build.gradle if prebuild --clean, bump versionCode); 4) upload
+  screen) — **v4 AAB BUILT 2026-08-04** (versionCode 4, upload-key signed
+  CN=Mayo, RC key + dane screen verified inside the bundle; note: Hermes
+  stores non-ASCII strings as UTF-16 → grep the bundle with ASCII-only
+  strings) at android\...\bundle\release\app-release.aab — NOT yet
+  uploaded to Play; 4) upload
   AAB to internal testing, smoke test; 5) Play Console declarations: privacy
   URL, App access (magic-link login → shared test-Gmail creds for
   reviewers), Data safety (email + purchase history, encrypted in transit,
