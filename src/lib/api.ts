@@ -61,7 +61,7 @@ export class ApiError extends Error {
 }
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'PUT';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: unknown;
   token?: string;
 };
@@ -121,6 +121,11 @@ export const authApi = {
   /** GET /auth/check-open-all-days */
   checkOpenAllDays(token: string) {
     return request<boolean>('/auth/check-open-all-days', { token });
+  },
+
+  /** DELETE /auth/me — permanently delete the account (Play requirement). */
+  deleteAccount(token: string) {
+    return request<void>('/auth/me', { method: 'DELETE', token });
   },
 };
 

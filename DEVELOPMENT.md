@@ -240,3 +240,32 @@ once DNS points media.mayo-app.com at the bucket); reference IAM/bucket policies
   (added 2026-07-23; managed in mayo-dashboard).
 - [ ] **iOS** — build via Expo EAS cloud build (needs an Apple Developer account,
   $99/yr, to install on devices / publish — but no Mac required to build).
+
+## 6. Privacy policy & account deletion (added 2026-08-04, for Play production)
+
+Google Play requires a privacy-policy URL (store listing + in-app link) and an
+account-deletion option (in-app + a public web URL for the Data-safety form).
+
+- **Privacy policy**: rewritten for the app in mayo-fe
+  (`src/app/master-classes/privacy-policy/privacy-policy.html`), live at
+  **https://mayo-app.com/privacy-policy** (deploy = push mayo-fe branch `main`).
+  Polish, covers: email login, subscriptions via Google Play + RevenueCat,
+  SendGrid, AWS, GDPR bases/rights, deletion, children <16.
+- **In-app (mayo-mobile)**: new `src/app/dane.tsx` (profile → dane): shows the
+  account e-mail, "polityka prywatności" link (opens the URL above) and a red
+  "usuń konto" button (confirm Alert → `DELETE /auth/me` → signOut). Profile-menu
+  "dane" placeholder now routes there.
+- **Backend (mayo-ba)**:
+  - `DELETE /auth/me` (Bearer) — deletes AdventCalendar + Purchase +
+    VideoResendLog rows, then the User (transaction; no cascades in schema).
+  - Public web flow for the Play form — URL: **`<backend>/delete-account`**
+    (prod: https://server.mayo-app.com/delete-account): email form →
+    `POST /auth/request-deletion` (silently ok for unknown emails) → SendGrid
+    email (inline HTML, no template) with `CLIENT_URL + 'delete-account/' +
+    <JWT purpose:'account-deletion', 1h>` → confirm page → POST
+    `/delete-account/:token/confirm` deletes. Deletion never happens on GET
+    (SendGrid click-tracking prefetches links); login JWTs are rejected
+    (purpose claim checked).
+- Deleting the account does NOT cancel a Play subscription (policy + UI copy
+  say to cancel in Google Play). Edge case: an active RevenueCat subscription
+  that later RENEWs re-creates the user row via the webhook upsert.

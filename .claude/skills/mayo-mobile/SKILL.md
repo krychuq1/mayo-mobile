@@ -524,13 +524,69 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   profile-menu (dane still placeholder). ⚠️ typed-routes trap: new route
   needed manual add to `.expo/types/router.d.ts` for tsc (regenerates on
   `npm start`). tsc clean.
-- ⏳ **Pick up here:** local dev = Expo Go + local backend as before (billing
-  is the only thing needing store builds). mayo-mobile changes NOT committed
-  yet (paywall + RC + icons + platnosc). Still open: dane placeholder, advent
-  calendar screen, prune unused Stripe subscription code from mayo-ba, v2 AAB
-  with platnosc screen not yet rebuilt/uploaded (current store build lacks
-  it), iOS: Apple Developer enrollment in progress → RevenueCat iOS app +
-  EXPO_PUBLIC_REVENUECAT_IOS_KEY + App Store Connect product later.
+- ✅ 2026-08-04: mayo-mobile committed (952699e, versionCode 3); the on-disk
+  AAB at android\...\bundle\release\app-release.aab IS the v3/platnosc build
+  (verified: merged release manifest versionCode="3") — ready to upload, NOT
+  yet uploaded to Play. server.mayo-app.com DNS verified repointed
+  (51.21.219.231, HTTP 200) — old stale-DNS warning above is resolved.
+- ✅ 2026-08-04: **privacy policy rewritten for the app** in mayo-fe
+  (`src/app/master-classes/privacy-policy/privacy-policy.html`, live URL
+  https://mayo-app.com/privacy-policy) — Polish, GDPR/Play-ready: admin
+  contact pmror@mayo-app.com, data = email/subscription status/token/logs,
+  legal bases, Google Play billing + RevenueCat + SendGrid + AWS as
+  processors, non-EEA transfers (SCC), retention, rights + UODO, account
+  deletion section (in-app "mój profil" or email), security, children <16,
+  changes. `npm run build` passes. NOT yet committed/deployed (mayo-fe
+  deploy = push branch `prod` → GH Action → S3 mayo-app.com + CloudFront).
+- ✅ 2026-08-04 (later): **privacy policy DEPLOYED + account deletion DONE.**
+  mayo-fe: policy committed (187494a) and pushed to BOTH main (prod deploy →
+  mayo-app.com) and develop (dev deploy); mayo-fe deploy = push branch `main`
+  (NOT a `prod` branch — main=prod bucket, develop=dev bucket per
+  .github/workflows/deploy.yml); the route is Angular-PRERENDERED so the
+  static HTML carries the content. Git-push trick that works: get password
+  via `printf "protocol=https\nhost=github.com\nusername=krychuq1\n\n" |
+  git-credential-manager.exe get` (in Git's mingw64/bin), then push with
+  `-c http.extraheader="AUTHORIZATION: basic <b64(krychuq1:pw)>"`
+  (`git credential fill` does NOT find it). Account deletion (see
+  DEVELOPMENT.md §6 for full detail): mayo-ba `DELETE /auth/me` (Bearer) +
+  public flow `GET /delete-account` (email form) → `POST
+  /auth/request-deletion` → SendGrid inline-HTML mail with 1h JWT
+  (purpose:'account-deletion' — login JWTs rejected) → GET confirm page →
+  POST `/delete-account/:token/confirm` deletes (children first,
+  transaction; NEVER deletes on GET — click-tracking prefetch). Play
+  Data-safety deletion URL = https://server.mayo-app.com/delete-account.
+  Mobile: `app/dane.tsx` (email + polityka-prywatności link + red usuń
+  konto → confirm Alert → DELETE /auth/me → signOut), profile-menu dane
+  wired, `/dane` added to .expo/types/router.d.ts, `authApi.deleteAccount`
+  + DELETE method in api.ts. Backend verified end-to-end locally (form
+  200 / confirm page / wrong-purpose rejected / delete + orphan check /
+  unknown-email ok / DELETE /auth/me 200→401); `nest build` + mobile tsc
+  clean. Dane screen VERIFIED in emulator (feed → mój profil → dane →
+  confirm Alert renders → cancel; polityka-prywatności link opens Chrome
+  at mayo-app.com/privacy-policy). NOT committed (mayo-ba, mayo-mobile);
+  request-deletion EMAIL path untested (sends real SendGrid mail). Needs
+  v4 build+upload before Play submission. ⚠️ PC LAN IP changed .104 →
+  **192.168.0.102** (dev CLIENT_URL in mayo-ba .env updated 2026-08-04).
+  ⚠️ Emulator is signed in as krys.nagorny@gmail.com (NOT emutest) — the
+  emutest row got a dev-grant app-subscription Purchase in local DB.
+- ⏳ **Pick up here — Play Store production checklist** (account is an
+  ORGANIZATION → exempt from the 12-tester/14-day closed-testing rule):
+  1) ~~deploy privacy policy~~ DONE; 2) ~~account deletion flow~~ DONE
+  (commit + deploy mayo-ba to prod still pending); 3) ~~in-app
+  privacy-policy link~~ DONE (in dane screen) — rebuild as v4; 4) upload
+  AAB to internal testing, smoke test; 5) Play Console declarations: privacy
+  URL, App access (magic-link login → shared test-Gmail creds for
+  reviewers), Data safety (email + purchase history, encrypted in transit,
+  deletion URL), content rating (IARC), target audience (16/18+), ads=no,
+  news=no, govt=no, financial=none; 6) main store listing PL (name, short
+  ≤80 / full ≤4000 desc, 512×512 icon, 1024×500 feature graphic, ≥2 phone
+  screenshots 9:16); 7) countries (PL) → promote to Production → review
+  (1–7 days). Google Sign-In NOT required (magic link is fine). Privacy
+  policy: Polish suffices legally (GDPR plain-language for PL audience);
+  English optional. Still open besides checklist: dane placeholder, advent
+  calendar screen, prune unused Stripe subscription code from mayo-ba, iOS
+  (Apple Developer enrollment in progress → RevenueCat iOS app +
+  EXPO_PUBLIC_REVENUECAT_IOS_KEY + App Store Connect product later).
 
 ## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
 
