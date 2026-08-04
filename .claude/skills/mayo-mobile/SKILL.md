@@ -582,20 +582,37 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   CN=Mayo, RC key + dane screen verified inside the bundle; note: Hermes
   stores non-ASCII strings as UTF-16 → grep the bundle with ASCII-only
   strings) at android\...\bundle\release\app-release.aab — NOT yet
-  uploaded to Play; 4) upload
-  AAB to internal testing, smoke test; 5) Play Console declarations: privacy
-  URL, App access (magic-link login → shared test-Gmail creds for
-  reviewers), Data safety (email + purchase history, encrypted in transit,
-  deletion URL), content rating (IARC), target audience (16/18+), ads=no,
+  uploaded to Play. **NEXT SESSION (user tests ~2026-08-05):**
+  4) USER: upload the v4 AAB to Play internal testing, install on phone
+  via the testing link, smoke test dane screen (profile → dane →
+  polityka-prywatności link + usuń konto; deleting a real account is fine
+  — magic-link login recreates it, but sub-status Purchase rows are lost);
+  optionally test the deletion EMAIL once at
+  https://server.mayo-app.com/delete-account (only untested piece —
+  sends real SendGrid mail); 5) Play Console declarations: privacy URL =
+  https://mayo-app.com/privacy-policy, App access (magic-link login →
+  shared test-Gmail creds for reviewers — USER must create/provide),
+  Data safety (collects: email [account mgmt] + purchase history;
+  encrypted in transit; deletion URL =
+  https://server.mayo-app.com/delete-account), content rating (IARC),
+  target audience (agent recommended 18+ — USER decides), ads=no,
   news=no, govt=no, financial=none; 6) main store listing PL (name, short
   ≤80 / full ≤4000 desc, 512×512 icon, 1024×500 feature graphic, ≥2 phone
-  screenshots 9:16); 7) countries (PL) → promote to Production → review
-  (1–7 days). Google Sign-In NOT required (magic link is fine). Privacy
-  policy: Polish suffices legally (GDPR plain-language for PL audience);
-  English optional. Still open besides checklist: dane placeholder, advent
-  calendar screen, prune unused Stripe subscription code from mayo-ba, iOS
-  (Apple Developer enrollment in progress → RevenueCat iOS app +
-  EXPO_PUBLIC_REVENUECAT_IOS_KEY + App Store Connect product later).
+  screenshots 9:16) — agent OFFERED to draft PL listing texts + capture
+  emulator screenshots (not done yet, ask user); 7) countries (PL) →
+  promote v4 release to Production → review (1–7 days; org account, no
+  closed-testing quota). Google Sign-In NOT required (magic link is
+  fine). Privacy policy: Polish suffices legally (GDPR plain-language
+  for PL audience); English optional. Emulator smoke-test loop used
+  2026-08-04 (works well): backend `node dist/src/main` + emulator +
+  `npx expo start`, open `exp://<lan-ip>:8081` via `adb shell am start -a
+  android.intent.action.VIEW -d`, screenshot `adb exec-out screencap -p`
+  (redirect in BASH, not PowerShell — PS mangles binary), tap `adb shell
+  input tap` (scale coords ×1.2 from 900px-wide screenshot render).
+  Still open besides checklist: advent calendar screen, prune unused
+  Stripe subscription code from mayo-ba, iOS (Apple Developer enrollment
+  in progress → RevenueCat iOS app + EXPO_PUBLIC_REVENUECAT_IOS_KEY +
+  App Store Connect product later).
 
 ## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
 
