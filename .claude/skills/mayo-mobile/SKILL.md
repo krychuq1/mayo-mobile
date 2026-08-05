@@ -581,38 +581,51 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   screen) — **v4 AAB BUILT 2026-08-04** (versionCode 4, upload-key signed
   CN=Mayo, RC key + dane screen verified inside the bundle; note: Hermes
   stores non-ASCII strings as UTF-16 → grep the bundle with ASCII-only
-  strings) at android\...\bundle\release\app-release.aab — NOT yet
-  uploaded to Play. **NEXT SESSION (user tests ~2026-08-05):**
-  4) USER: upload the v4 AAB to Play internal testing, install on phone
-  via the testing link, smoke test dane screen (profile → dane →
-  polityka-prywatności link + usuń konto; deleting a real account is fine
-  — magic-link login recreates it, but sub-status Purchase rows are lost);
-  optionally test the deletion EMAIL once at
-  https://server.mayo-app.com/delete-account (only untested piece —
-  sends real SendGrid mail); 5) Play Console declarations: privacy URL =
-  https://mayo-app.com/privacy-policy, App access (magic-link login →
-  shared test-Gmail creds for reviewers — USER must create/provide),
-  Data safety (collects: email [account mgmt] + purchase history;
-  encrypted in transit; deletion URL =
-  https://server.mayo-app.com/delete-account), content rating (IARC),
-  target audience (agent recommended 18+ — USER decides), ads=no,
-  news=no, govt=no, financial=none; 6) main store listing PL (name, short
-  ≤80 / full ≤4000 desc, 512×512 icon, 1024×500 feature graphic, ≥2 phone
-  screenshots 9:16) — agent OFFERED to draft PL listing texts + capture
-  emulator screenshots (not done yet, ask user); 7) countries (PL) →
-  promote v4 release to Production → review (1–7 days; org account, no
-  closed-testing quota). Google Sign-In NOT required (magic link is
-  fine). Privacy policy: Polish suffices legally (GDPR plain-language
-  for PL audience); English optional. Emulator smoke-test loop used
-  2026-08-04 (works well): backend `node dist/src/main` + emulator +
-  `npx expo start`, open `exp://<lan-ip>:8081` via `adb shell am start -a
-  android.intent.action.VIEW -d`, screenshot `adb exec-out screencap -p`
-  (redirect in BASH, not PowerShell — PS mangles binary), tap `adb shell
-  input tap` (scale coords ×1.2 from 900px-wide screenshot render).
-  Still open besides checklist: advent calendar screen, prune unused
-  Stripe subscription code from mayo-ba, iOS (Apple Developer enrollment
-  in progress → RevenueCat iOS app + EXPO_PUBLIC_REVENUECAT_IOS_KEY +
-  App Store Connect product later).
+  strings) at android\...\bundle\release\app-release.aab.
+  **STATUS 2026-08-05:** user TESTED the v4 build (dane screen, delete
+  user, privacy policy — all work). Play Console progress this session:
+  Data safety COMPLETE (collects email [app functionality] + purchase
+  history [app functionality], no sharing, encrypted in transit,
+  account-creation method "Username and other authentication", delete
+  URL https://server.mayo-app.com/delete-account, partial-data
+  deletion = No); App access filled with review account
+  **mayoreview0@gmail.com** — that account is SEEDED IN PROD DB
+  (user row + Purchase id 119, productId app-subscription,
+  stripeCustomerId 'play-review-seed') so reviewers skip the paywall
+  WITHOUT paying; do NOT buy a real sub for it. If someone runs "usuń
+  konto" on it, re-seed the same way (node+Prisma one-liner over SSH,
+  DATABASE_URL from sudo grep ~/mayo-ba/.env). USER still must create
+  the actual Gmail inbox (no 2FA) + put its password in the form.
+  **Store-listing assets GENERATED → E:\mayo-mobile\store-assets\**
+  (icon-512.png, feature-graphic-1024x500.png, 3× framed 1080×1920
+  screenshots; PL name/short/full description texts drafted in chat —
+  short: "najlepsze modowe perełki z Vinted — codziennie świeże
+  znaleziska w jednym feedzie"). Made with headless Chrome
+  (--headless=new --screenshot --window-size) compositing raw emulator
+  screencaps + brand assets; template in session scratchpad.
+  **REMAINING (user clicks in console):** content rating IARC (all "no",
+  digital purchases = yes), target audience 18+, store listing upload
+  (texts + store-assets files), countries=PL, promote v4 to Production,
+  submit for review (1–7 days). Google Sign-In NOT required.
+  Emulator recipe additions 2026-08-05: if adb shell hangs/screencap
+  returns 0 bytes with system_server DEAD_OBJECT → snapshot boot is
+  wedged, `adb emu kill` + relaunch with `-no-snapshot-load`; Expo Go
+  floating gear FAB over the header: dev menu (tap FAB) → toggle
+  "Tools button" OFF; feed data caches — pull-to-refresh (swipe down)
+  after DB edits; local test items cleaned (Mohito id 10 size fixed,
+  tags cleared) — VintedItemTag enum is still placeholder tag1..tag5
+  (rename = schema migration, backlog); prod catalog has only 1 test
+  item (baby onesie) — local DB is the better screenshot source.
+  JWT_SECRET is IDENTICAL local↔prod (verified via md5) so emulator
+  tokens work against prod if env.ts is temporarily forced to
+  PROD_BACKEND_URL. Re-login trick after signOut in emulator: enter
+  email → "wyślij link" → flip isTokenActivated=true in local DB → app
+  polls itself back in.
+  Still open besides checklist: advent calendar screen, rename
+  VintedItemTag placeholders, prune unused Stripe subscription code
+  from mayo-ba, iOS (Apple Developer enrollment in progress →
+  RevenueCat iOS app + EXPO_PUBLIC_REVENUECAT_IOS_KEY + App Store
+  Connect product later).
 
 ## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
 
