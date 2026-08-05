@@ -603,10 +603,19 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   znaleziska w jednym feedzie"). Made with headless Chrome
   (--headless=new --screenshot --window-size) compositing raw emulator
   screencaps + brand assets; template in session scratchpad.
-  **REMAINING (user clicks in console):** content rating IARC (all "no",
-  digital purchases = yes), target audience 18+, store listing upload
-  (texts + store-assets files), countries=PL, promote v4 to Production,
-  submit for review (1–7 days). Google Sign-In NOT required.
+  **Store listing progress (evening 2026-08-05):** icon, feature graphic
+  and the 3 phone screenshots are UPLOADED in the Default (pl-PL)
+  listing. **NEXT SESSION — REMAINING:** 1) paste short + full PL
+  descriptions (final texts live in this file's sibling
+  store-assets\listing-texts.md); 2) tablet screenshots 7" + 10" are
+  REQUIRED → reuse the SAME 3 phone PNGs from the asset library
+  (1080×1920 satisfies both: 7" needs sides 320–3840, 10" needs sides
+  ≥1080); 3) content rating IARC (all "no", digital purchases = yes);
+  4) target audience 18+; 5) App access: USER creates the
+  mayoreview0@gmail.com inbox (no 2FA) + password into the form + tick
+  "full access" checkbox (prod DB already grants it access); 6)
+  countries=PL → promote v4 to Production → submit for review (1–7
+  days). Google Sign-In NOT required.
   Emulator recipe additions 2026-08-05: if adb shell hangs/screencap
   returns 0 bytes with system_server DEAD_OBJECT → snapshot boot is
   wedged, `adb emu kill` + relaunch with `-no-snapshot-load`; Expo Go
