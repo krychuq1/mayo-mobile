@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -33,6 +33,25 @@ export default function LoginScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [focused, setFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+
+  // The form sits at the bottom of the scroll content — when the keyboard
+  // opens, the resized viewport still shows the top of the page, so scroll
+  // the input (it's the last thing besides the button) into view.
+  useEffect(() => {
+    // Delay so this runs AFTER the KAV padding is applied and Android's own
+    // scroll-focused-input-into-view — otherwise the button stays below the fold.
+    let timer: ReturnType<typeof setTimeout>;
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      timer = setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 150);
+    });
+    return () => {
+      clearTimeout(timer);
+      sub.remove();
+    };
+  }, []);
 
   async function onSubmit() {
     if (submitting) return;
@@ -67,8 +86,12 @@ export default function LoginScreen() {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        // 'padding' on Android too: with edge-to-edge the window doesn't
+        // resize for the keyboard, so KAV must shrink the viewport itself
+        // (when the window DOES resize, measured overlap is 0 — no-op).
+        behavior="padding">
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>

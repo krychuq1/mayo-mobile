@@ -16,7 +16,21 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.mayoapp.mobile",
-      "versionCode": 4
+      "versionCode": 5,
+      "intentFilters": [
+        {
+          "autoVerify": true,
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "https",
+              "host": "server.mayo-app.com",
+              "pathPrefix": "/activate-user"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "output": "static",

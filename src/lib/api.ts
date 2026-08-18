@@ -127,6 +127,17 @@ export const authApi = {
   deleteAccount(token: string) {
     return request<void>('/auth/me', { method: 'DELETE', token });
   },
+
+  /**
+   * POST /auth/activate/:token — activate a magic-link token from the app's
+   * deep-link route (Android App Link on /activate-user/*). 400 = bad/expired.
+   */
+  activateToken(linkToken: string) {
+    return request<{ activated: boolean }>(
+      `/auth/activate/${encodeURIComponent(linkToken)}`,
+      { method: 'POST' },
+    );
+  },
 };
 
 // --- Checkout / paywall (mayo-ba /checkout) ---
