@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Mayo",
-    "slug": "mayo-mobile",
+    "slug": "mayo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -28,7 +28,10 @@
               "pathPrefix": "/activate-user"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -53,6 +56,23 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fc3f0417-d74f-4ece-a0cb-86c36cb8547e"
+      }
+    },
+    "owner": "krychuqs-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/fc3f0417-d74f-4ece-a0cb-86c36cb8547e",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      }
+    },
+    "ios": {}
   }
 }
