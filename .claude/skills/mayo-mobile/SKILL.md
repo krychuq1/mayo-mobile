@@ -635,6 +635,53 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   from mayo-ba, iOS (Apple Developer enrollment in progress →
   RevenueCat iOS app + EXPO_PUBLIC_REVENUECAT_IOS_KEY + App Store
   Connect product later).
+- ✅ 2026-08-18: **APP IS LIVE IN PRODUCTION** (v4, 100% rollout, first
+  install). Session work:
+  1. **Login keyboard fix** (login.tsx): KAV `behavior="padding"` on
+     Android too — edge-to-edge OVERLAYS the keyboard without resizing
+     the window, so KAV must shrink the viewport itself (when the window
+     does resize, measured overlap is 0 → no-op) — plus keyboardDidShow
+     listener → 150ms-delayed scrollToEnd (delay beats Android's own
+     scroll-focused-input nudge; without it only the input, not the CTA,
+     was visible). Verified on user's phone (input + CTA above keyboard).
+  2. **Deep-link login DONE (Android App Links)** — magic link opens the
+     app directly instead of the browser page:
+     - mayo-ba: `POST /auth/activate/:token` (JSON, 400 = bad/expired;
+       HTML GET page stays as browser fallback), `GET
+       /.well-known/assetlinks.json` (package com.mayoapp.mobile,
+       fingerprints: upload key 11:C9:...D4:3D + Play app-signing key
+       F7:9E:...87:D9 — Play page: Protected with Play → direct URL
+       .../keymanagement, "App signing" moved out of Test and release),
+       SendGrid clickTracking OFF on both login mails (ct.sendgrid.net
+       redirect would open the browser, not the app). Deployed to prod
+       (develop=prod=594fb14).
+     - mayo-mobile: app.json android.intentFilters autoVerify https
+       server.mayo-app.com pathPrefix /activate-user; new route
+       `src/app/activate-user/[token].tsx` ("Logujemy Cię… 🎉" →
+       authApi.activateToken → 1s-poll refreshActivation until signedIn
+       → '/'; signedOut → /login; failure → Ups + wróć); verified e2e in
+       emulator via `exp://<ip>:8081/--/activate-user/<token>` (token
+       from DB user.lastToken via node+Prisma one-liner).
+     - **v5 AAB BUILT** (versionCode 5, upload-key signed, intent filter
+       + versionCode verified in merged manifest) at
+       android\...\bundle\release\app-release.aab — NEXT: user uploads
+       v5 to Play production. App Links only work in the store build
+       (Expo Go can't register them; dev keeps using the polling flow).
+  3. Committed: mayo-mobile master 64ff207 (not pushed), mayo-ba
+     develop=prod=594fb14 (pushed + deployed).
+  Session gotchas: PowerShell `>` MANGLES binary (adb exec-out screencap
+  → corrupt PNG w/ BOM) — do screencaps from the Bash tool; emulator
+  Gboard shows a floating pill toolbar (AVD reports hardware keyboard) —
+  pill hamburger menu → "Show on-screen keyboard" gets a FLOATING
+  keyboard (couldn't dock it; phone testing is more honest for keyboard
+  UX); user phone screenshots arrive as .jfif → copy to .jpg to Read
+  them; stale mayo-ba from a previous session may hold port 3003 (nest
+  watch dies with EADDRINUSE and does NOT respawn on mtime-only touch —
+  kill the old tree via Get-CimInstance parent chain + restart fresh);
+  PC has TWO LAN IPs now: Ethernet 192.168.0.105 (lower metric — Metro
+  advertises it, dev CLIENT_URL set to it) and WiFi .104. Emulator is
+  signed in as emutest again (fresh magic-link session from the deep-
+  link test).
 
 ## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
 
@@ -672,10 +719,9 @@ Distribution: upload APK to the public media bucket, e.g.
 
 ## Open TODOs
 
-- Deep linking (Phase 2): make the Gmail click OPEN THE APP directly. Requires a real build
-  (EAS dev build APK — Expo Go cannot register Android App Links): intent filter for
-  https://mayo-app.com/activate-user/* in app.json + `assetlinks.json` hosted on the domain +
-  in-app route that calls activate. Polling already covers login UX meanwhile.
+- ~~Deep linking (Phase 2)~~ DONE 2026-08-18 (see that session entry): App Link on
+  https://server.mayo-app.com/activate-user/*, assetlinks.json served by mayo-ba,
+  in-app /activate-user/[token] route. Ships with the v5 AAB.
 - First real screen: port the advent calendar (`UserWithCalendarData` / `open-day`).
 - Fix mayo-ba `start:prod` script (`node dist/main` → `node dist/src/main`).
 - iOS testing (researched 2026-07-23): ⚠️ **no free path on a physical iPhone right now.**
