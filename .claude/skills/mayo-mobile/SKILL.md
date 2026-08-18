@@ -683,6 +683,30 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   signed in as emutest again (fresh magic-link session from the deep-
   link test).
 
+## EAS Update — OTA JS updates (set up 2026-08-18, ships with v5)
+
+JS/asset changes can be pushed WITHOUT a Play release: `npx eas-cli update
+--channel production --message "<what changed>"` in E:\mayo-mobile. Users get
+it on the next TWO app launches (downloaded in background on launch 1,
+applied on launch 2). Native changes (new modules, app.json android config,
+versionCode) still need a store build.
+
+- EAS project: `@krychuqs-team/mayo`, id fc3f0417-d74f-4ece-a0cb-86c36cb8547e
+  (app.json slug renamed mayo-mobile → mayo to match; `extra.eas.projectId` +
+  `owner` set). Account: krychuq / krys.nagorny@gmail.com (free tier, OTA up
+  to ~1k MAU). CLI login persists on this PC (`npx eas-cli whoami`).
+- runtimeVersion policy = **appVersion** → runtime "1.0.0". ⚠️ Updates only
+  reach builds with the SAME runtime version: after ANY native change, bump
+  `version` in app.json (e.g. 1.0.1) or old installs would fetch incompatible
+  JS. Channel "production" is embedded via `updates.requestHeaders`
+  (`expo-channel-name`) — REQUIRED because we build locally with gradle, not
+  EAS Build (channel created with `eas channel:create production`).
+- ⚠️ Build-memory gotcha: expo-updates pushed the Gradle daemon over its
+  512 MiB Metaspace → a batch of `compileReleaseKotlin FAILED` with no error
+  text. Fix (done): `org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m`
+  appended (BOM-free, via bash printf) to E:\gradle-cache\gradle.properties.
+- Expo Go dev flow is unaffected (updates config is inert there).
+
 ## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
 
 `env.ts` prod fallback is now the real `https://server.mayo-app.com` (EXPO_PUBLIC_BACKEND_URL
