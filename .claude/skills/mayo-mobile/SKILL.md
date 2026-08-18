@@ -669,6 +669,39 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
        (Expo Go can't register them; dev keeps using the polling flow).
   3. Committed: mayo-mobile master 64ff207 (not pushed), mayo-ba
      develop=prod=594fb14 (pushed + deployed).
+  4. (later) **v5 LIVE + deep link VERIFIED WORKING on the user's phone.**
+     Post-release debugging, all resolved:
+     - v5 install failed at ~20% on the phone → fixed by clearing the Play
+       Store app's cache (fresh-release CDN propagation).
+     - Magic link still opened the BROWSER: App Link verification failed
+       on the phone (while the upload-key build verified fine on the
+       emulator). ROOT CAUSE: **the Play Console App-signing UI shows only
+       2 keys (hybrid classical + PQC), but "Download certificates" gives
+       THREE .der files — deployment_cert (SHA-256 6A:5B:D1:...) is what
+       actually signs APKs Play delivers**, and it wasn't in
+       assetlinks.json. Fix: keytool -printcert -file on each .der →
+       assetlinks now lists ALL FOUR fingerprints (upload 11:C9, deployment
+       6A:5B, classical F7:9E, PQC 5B:BC) — mayo-ba develop=prod=c089279,
+       deployed.
+     - ⚠️ Google DAL cache: Android verifies via
+       digitalassetlinks.googleapis.com, which CACHES the file (~40 min
+       observed; our response has no Cache-Control, only ETag — adding
+       max-age would shorten this). Check what Google sees:
+       `curl "https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://server.mayo-app.com&relation=delegate_permission/common.handle_all_urls"`
+       Wait for it to show the new file BEFORE reinstalling to re-verify.
+     - Emulator app-link test recipe: install release APK (assembleRelease,
+       ~same manifest as AAB), then `adb shell pm get-app-links
+       com.mayoapp.mobile` (state "none" right after install), `adb shell
+       pm verify-app-links --re-verify com.mayoapp.mobile`, re-check →
+       "verified"; `am start -a android.intent.action.VIEW -d
+       "https://server.mayo-app.com/activate-user/test"` must resume
+       com.mayoapp.mobile/.MainActivity, not a browser.
+     - ℹ️ E:\mayo-ba is checked out on branch **prod** now (user switched
+       to it at some point — a stale prod checkout is what briefly looked
+       like reverted files this session; ff-merged back). develop and prod
+       both point at c089279.
+     - Long-press → "Open in browser" in Gmail ALWAYS bypasses the app —
+       only normal taps go through App Links (matters when testing).
   Session gotchas: PowerShell `>` MANGLES binary (adb exec-out screencap
   → corrupt PNG w/ BOM) — do screencaps from the Bash tool; emulator
   Gboard shows a floating pill toolbar (AVD reports hardware keyboard) —
