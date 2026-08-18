@@ -716,6 +716,27 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   signed in as emutest again (fresh magic-link session from the deep-
   link test).
 
+- 🔎 2026-08-18 (payment debug): **prod user wojryba@gmail.com — paywall CTA
+  spins forever.** Server showed NOTHING (expected: store billing never touches
+  mayo-ba until the RC webhook; his token-validation + subscription-status
+  polls were the only trace — meanwhile patrycja.musur@gmail.com purchased
+  fine the same day, so the RC→webhook pipeline works; hang is on-device in
+  `purchaseSubscription()`). Diagnostics added:
+  - mayo-ba: `POST /auth/client-log` (AuthGuard, body `{message}`, logs
+    `[ClientLog] <email>: <msg>` capped 2000 chars) — develop=prod=1144a53,
+    deployed (verified 401 live). Grep prod: `grep ClientLog ~/.pm2/logs/main-out.log`.
+  - mobile: `purchaseSubscription(log?)` posts breadcrumbs (isConfigured,
+    offerings/package ids, purchase done/cancelled) + rejects instead of
+    hanging (30s timeout getOfferings, 5min purchasePackage);
+    `describePurchaseError()` flattens RC's non-enumerable error fields
+    (message/code/readableErrorCode/userCancelled/underlying); paywall CTA +
+    both swallowed `identifyPurchaser` catches now post via
+    `authApi.clientLog`. Commit 3378e7a (not pushed), published **OTA**
+    (update group 7998a073-6a96-4935-b9c0-b5c95ffd4689, runtime 1.0.0).
+    User must relaunch the app TWICE to get it, then retry payment →
+    breadcrumbs land in pm2 logs. ⚠️ eas-cli non-interactive gotcha:
+    `--non-interactive` also requires `--environment production`.
+
 ## EAS Update — OTA JS updates (set up 2026-08-18, ships with v5)
 
 JS/asset changes can be pushed WITHOUT a Play release: `npx eas-cli update
