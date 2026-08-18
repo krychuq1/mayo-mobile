@@ -10,7 +10,7 @@ import {
 } from 'react';
 
 import { authApi, checkoutApi, type User } from './api';
-import { identifyPurchaser } from './purchases';
+import { describePurchaseError, identifyPurchaser } from './purchases';
 
 const TOKEN_KEY = 'mayo_auth_token';
 
@@ -76,7 +76,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setHasAccess(access);
           setStatus('signedIn');
           // Tie RevenueCat purchases to this user (no-op without a key / in Expo Go).
-          identifyPurchaser(me.email).catch(() => {});
+          identifyPurchaser(me.email).catch((e) => {
+            authApi
+              .clientLog(stored, `identifyPurchaser: ${describePurchaseError(e)}`)
+              .catch(() => {});
+          });
         } else {
           setStatus('pendingActivation');
         }
@@ -114,7 +118,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(me);
     setHasAccess(access);
     setStatus('signedIn');
-    identifyPurchaser(me.email).catch(() => {});
+    identifyPurchaser(me.email).catch((e) => {
+      authApi
+        .clientLog(token, `identifyPurchaser: ${describePurchaseError(e)}`)
+        .catch(() => {});
+    });
     return true;
   }, [token]);
 

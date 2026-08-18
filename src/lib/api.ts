@@ -129,6 +129,18 @@ export const authApi = {
   },
 
   /**
+   * POST /auth/client-log — drop a diagnostic message into the server log
+   * (store-billing runs entirely on-device; this is our only visibility).
+   */
+  clientLog(token: string, message: string) {
+    return request<{ ok: boolean }>('/auth/client-log', {
+      method: 'POST',
+      body: { message },
+      token,
+    });
+  },
+
+  /**
    * POST /auth/activate/:token — activate a magic-link token from the app's
    * deep-link route (Android App Link on /activate-user/*). 400 = bad/expired.
    */

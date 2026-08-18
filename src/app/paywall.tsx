@@ -11,8 +11,13 @@ import {
 
 import { MayoLogo } from '@/components/mayo-logo';
 import { Screen } from '@/components/screen';
+import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
-import { nativeBillingAvailable, purchaseSubscription } from '@/lib/purchases';
+import {
+  describePurchaseError,
+  nativeBillingAvailable,
+  purchaseSubscription,
+} from '@/lib/purchases';
 import { colors, fonts } from '@/lib/theme';
 
 const POLL_MS = 3000;
@@ -64,15 +69,23 @@ export default function PaywallScreen() {
       setError('Płatności działają w aplikacji z Google Play 😅');
       return;
     }
+    // Breadcrumbs to the server log — store billing runs entirely on-device,
+    // so this is the only way to see remotely where a purchase gets stuck.
+    const log = (message: string) => {
+      authApi.clientLog(token, `paywall: ${message}`).catch(() => {});
+    };
     setStarting(true);
     setError(null);
+    log('CTA pressed');
     try {
       // Native Google/Apple payment sheet via RevenueCat. The RevenueCat →
       // mayo-ba webhook records the purchase; the poll below flips hasAccess
       // and routes to the feed.
-      const result = await purchaseSubscription();
+      const result = await purchaseSubscription(log);
+      log(`result: ${result}`);
       if (result === 'purchased') check();
-    } catch {
+    } catch (e) {
+      log(`error: ${describePurchaseError(e)}`);
       setError('Nie udało się otworzyć płatności 😕 Spróbuj ponownie.');
     } finally {
       setStarting(false);
