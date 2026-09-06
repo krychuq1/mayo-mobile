@@ -16,7 +16,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.mayoapp.mobile",
-      "versionCode": 5,
+      "versionCode": 6,
       "intentFilters": [
         {
           "autoVerify": true,
@@ -69,6 +69,7 @@
     },
     "updates": {
       "url": "https://u.expo.dev/fc3f0417-d74f-4ece-a0cb-86c36cb8547e",
+      "checkAutomatically": "ON_ERROR_RECOVERY",
       "requestHeaders": {
         "expo-channel-name": "production"
       }
