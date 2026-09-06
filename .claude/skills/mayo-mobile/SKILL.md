@@ -859,7 +859,9 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   Runtime version stays 1.0.0 (no native module changes) → the same OTA
   channel serves v5 and v6. Expo Go: Updates.isEnabled false → check
   skipped. Build recipe unchanged (gradlew bundleRelease, JAVA_HOME=Android
-  Studio jbr, GRADLE_USER_HOME=E:\gradle-cache, ~13 min). master is many commits
+  Studio jbr, GRADLE_USER_HOME=E:\gradle-cache, ~13 min). master PUSHED to GitHub
+  2026-09-06 (952699e..c2e8d42) — plain `git push` works over the SSH remote,
+  no GCM trick needed for mayo-mobile. master was many commits
   ahead and still NOT pushed to GitHub. Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
