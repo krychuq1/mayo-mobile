@@ -784,8 +784,21 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   mount right after sign-in don't race configure()). paywall.tsx + platnosc.tsx
   render it; the literal '45,00 zł' survives only as FALLBACK_PRICE for Expo
   Go / no offering. OTA-published: group
-  **6cfa6d5d-cb68-45ba-bf7d-ed1f037b676a** (commit ed78215), verified key
-  present + live launchAsset hash == local export hash. Subscription reconciliation (same day): RC's single paid subscriber
+  6cfa6d5d-cb68-45ba-bf7d-ed1f037b676a (commit ed78215), verified key
+  present + live launchAsset hash == local export hash.
+  Then: 2nd-Google-account purchase test on the phone (app login
+  krys.nagorny+pmror) failed with RC **code 4 PURCHASE_INVALID_ERROR** ("One
+  or more of the arguments provided are invalid") — Play refused before the
+  sheet; likely causes: that Google account never installed the app via Play
+  (not in its library), Play country ≠ PL (app is PL-only), no payment
+  method; ⚠️ non-licence-tester accounts pay REAL 54,99 PLN. The breadcrumb
+  had dropped Play's reason: the RN bridge rejects with (code, message,
+  infoMap) → fields live on `error.userInfo` (readableErrorCode,
+  underlyingErrorMessage), not the root. `describePurchaseError` now logs
+  userInfo — commit 77d5837, **OTA group
+  8bce4678-aea8-40bd-afdf-8989a4e90a6f is CURRENT LIVE** (verified key +
+  hash). Next retry on the phone will show the raw Play billing response in
+  `grep ClientLog ~/.pm2/logs/main-out.log`. Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
   logged in as patrycja on a device using Krys's Google account. Play = one
