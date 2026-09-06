@@ -147,19 +147,25 @@ function withTimeout<T>(p: Promise<T>, ms: number, step: string): Promise<T> {
  * carry non-enumerable fields, so plain JSON.stringify would drop them.
  */
 export function describePurchaseError(e: unknown): string {
+  // The Android bridge rejects with (code, message, infoMap) → RN exposes the
+  // map as `error.userInfo` (readableErrorCode, underlyingErrorMessage = the
+  // raw Play Billing response). Older code read them off the root and lost them.
   const err = e as {
     message?: string;
     code?: string | number;
     userCancelled?: boolean;
     underlyingErrorMessage?: string;
     readableErrorCode?: string;
+    userInfo?: Record<string, unknown>;
   };
+  const info = err?.userInfo ?? {};
   return JSON.stringify({
     message: err?.message ?? String(e),
     code: err?.code,
-    readableErrorCode: err?.readableErrorCode,
+    readableErrorCode: err?.readableErrorCode ?? info.readableErrorCode,
     userCancelled: err?.userCancelled,
-    underlying: err?.underlyingErrorMessage,
+    underlying: err?.underlyingErrorMessage ?? info.underlyingErrorMessage,
+    userInfo: info,
   });
 }
 
