@@ -824,7 +824,10 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   żeby wystylizować" wrapped to 2 lines on the user's ~360dp phone (emulator
   is 412dp) → `numberOfLines=1 + adjustsFontSizeToFit + minimumFontScale 0.8`,
   paddingHorizontal 24→16. Emulator recipe for narrow phones: `adb shell wm
-  density 480` (1080px → 360dp), `adb shell wm density reset` after. Subscription reconciliation (same day): RC's single paid subscriber
+  density 480` (1080px → 360dp), `adb shell wm density reset` after.
+  Commit 6e4de05 → **OTA group d228a08f-cdf7-4b49-ac5a-e1b9f34b3961 is
+  CURRENT LIVE** (key present, live hash == local). master is many commits
+  ahead and still NOT pushed to GitHub. Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
   logged in as patrycja on a device using Krys's Google account. Play = one
