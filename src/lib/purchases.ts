@@ -25,6 +25,9 @@ export function nativeBillingAvailable(): boolean {
 }
 
 let configured = false;
+// In-flight identifyPurchaser(); read helpers await it so a screen that
+// mounts right after sign-in doesn't race the (un-awaited) configure call.
+let identifying: Promise<void> | null = null;
 
 async function getPurchases() {
   const Purchases = (await import('react-native-purchases')).default;
@@ -36,16 +39,55 @@ async function getPurchases() {
  * so backend webhook events can be mapped straight onto our User table.
  * Safe to call repeatedly; no-op without a key or in Expo Go.
  */
-export async function identifyPurchaser(email: string): Promise<void> {
-  if (!nativeBillingAvailable()) return;
+export function identifyPurchaser(email: string): Promise<void> {
+  if (!nativeBillingAvailable()) return Promise.resolve();
+  identifying = (async () => {
+    const Purchases = await getPurchases();
+    if (!configured) {
+      Purchases.configure({ apiKey: API_KEY!, appUserID: email });
+      configured = true;
+      return;
+    }
+    const current = await Purchases.getAppUserID();
+    if (current !== email) await Purchases.logIn(email);
+  })();
+  return identifying;
+}
+
+/** True once the SDK is usable (waits for a pending identify, swallows its error). */
+async function sdkReady(): Promise<boolean> {
+  if (!nativeBillingAvailable()) return false;
+  if (identifying) await identifying.catch(() => {});
+  return configured;
+}
+
+export type SubscriptionPrice = {
+  /** Store-localized, VAT-inclusive, e.g. "54,99 zł" — what the user is charged. */
+  priceString: string;
+  price: number;
+  currencyCode: string;
+};
+
+let cachedPrice: SubscriptionPrice | null = null;
+
+/**
+ * The real store price of the subscription package (current offering, first
+ * package). The Play base plan is the source of truth — never hardcode it in
+ * UI. Null in Expo Go / unconfigured / no offering; cached after first success.
+ */
+export async function getSubscriptionPrice(): Promise<SubscriptionPrice | null> {
+  if (cachedPrice) return cachedPrice;
+  if (!(await sdkReady())) return null;
   const Purchases = await getPurchases();
-  if (!configured) {
-    Purchases.configure({ apiKey: API_KEY!, appUserID: email });
-    configured = true;
-    return;
-  }
-  const current = await Purchases.getAppUserID();
-  if (current !== email) await Purchases.logIn(email);
+  const offerings = await withTimeout(Purchases.getOfferings(), 15_000, 'getOfferings');
+  const product = offerings.current?.availablePackages[0]?.product;
+  if (!product) return null;
+  cachedPrice = {
+    priceString: product.priceString,
+    price: product.price,
+    currencyCode: product.currencyCode,
+  };
+  return cachedPrice;
 }
 
 export type NativePurchaseResult = 'purchased' | 'cancelled';
@@ -67,7 +109,7 @@ export type SubscriptionInfo = {
  * null in Expo Go, before configure(), or when nothing is active.
  */
 export async function getSubscriptionInfo(): Promise<SubscriptionInfo | null> {
-  if (!nativeBillingAvailable() || !configured) return null;
+  if (!(await sdkReady())) return null;
   const Purchases = await getPurchases();
   const info = await withTimeout(Purchases.getCustomerInfo(), 15_000, 'getCustomerInfo');
   const active = info.entitlements.active;

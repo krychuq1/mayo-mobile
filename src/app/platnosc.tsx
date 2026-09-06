@@ -14,7 +14,11 @@ import { MayoLogo } from '@/components/mayo-logo';
 import { ProfileMenu } from '@/components/profile-menu';
 import { Screen } from '@/components/screen';
 import { useAuth } from '@/lib/auth-context';
-import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/purchases';
+import {
+  getSubscriptionInfo,
+  getSubscriptionPrice,
+  type SubscriptionInfo,
+} from '@/lib/purchases';
 import { colors, fonts } from '@/lib/theme';
 
 /**
@@ -31,6 +35,9 @@ const PLAY_SUBSCRIPTIONS_URL =
 const IOS_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 
 const PLAN_NAME = 'Mayo Standard';
+// Shown only while the store price is unknown (Expo Go) — the real,
+// VAT-inclusive price comes from the RevenueCat offering (Play base plan).
+const FALLBACK_PRICE = '45,00 zł';
 
 const MONTHS_GENITIVE = [
   'stycznia',
@@ -55,10 +62,23 @@ function formatDatePl(d: Date): string {
 export default function PlatnoscScreen() {
   const { status, user, hasAccess, signOut } = useAuth();
   const [sub, setSub] = useState<SubscriptionInfo | null>(null);
+  const [price, setPrice] = useState(FALLBACK_PRICE);
 
   useEffect(() => {
     if (status !== 'signedIn') router.replace('/');
   }, [status]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getSubscriptionPrice()
+      .then((p) => {
+        if (!cancelled && p) setPrice(p.priceString);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Billing schedule lives in RevenueCat (null in Expo Go → row hidden).
   useEffect(() => {
@@ -122,7 +142,7 @@ export default function PlatnoscScreen() {
           <View style={styles.rowBaseline}>
             <Text style={styles.line}>Cena</Text>
             <Text style={styles.line}>
-              <Text style={styles.strong}>45,00 zł</Text> / mies.
+              <Text style={styles.strong}>{price}</Text> / mies.
             </Text>
           </View>
 

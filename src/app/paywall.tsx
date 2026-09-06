@@ -18,12 +18,16 @@ import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import {
   describePurchaseError,
+  getSubscriptionPrice,
   nativeBillingAvailable,
   purchaseSubscription,
 } from '@/lib/purchases';
 import { colors, fonts } from '@/lib/theme';
 
 const POLL_MS = 3000;
+// Shown only while the store price is unknown (Expo Go) — the real,
+// VAT-inclusive price comes from the RevenueCat offering (Play base plan).
+const FALLBACK_PRICE = '45,00 zł';
 
 const BENEFITS = [
   'Pełny dostęp do wszystkich rzeczy i filtrów',
@@ -43,7 +47,20 @@ export default function PaywallScreen() {
   const { status, token, hasAccess, refreshAccess, signOut } = useAuth();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [price, setPrice] = useState(FALLBACK_PRICE);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getSubscriptionPrice()
+      .then((p) => {
+        if (!cancelled && p) setPrice(p.priceString);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Guards: lost session → gate; trial started (webhook landed) → feed.
   useEffect(() => {
@@ -142,7 +159,7 @@ export default function PaywallScreen() {
 
           <View style={styles.rowBaseline}>
             <Text style={styles.line}>Po okresie próbnym</Text>
-            <Text style={styles.line}>45,00 zł / mies.</Text>
+            <Text style={styles.line}>{price} / mies.</Text>
           </View>
 
           <View style={styles.actions}>

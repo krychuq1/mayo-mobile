@@ -775,7 +775,24 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   deleted + re-inserted (stripeCustomerId 'dev') during the test.
   **Product card updated** to the current product-detail template (see
   vinted-item-card.tsx "round 3" notes; new icons chevron-down-dark,
-  chevron-up-dark, link-dark, shield-check-blue). All of it COMMITTED
+  chevron-up-dark, link-dark, shield-check-blue).
+  ⚠️ **PRICE DISCREPANCY found 2026-09-06:** Google Play charges **54,99 PLN**
+  (user's own Play account, RC shows $15) while the app/design hardcoded
+  45,00 zł. Fix: `getSubscriptionPrice()` in purchases.ts (current offering →
+  first package → `product.priceString`, VAT-incl. store string, cached;
+  waits for the in-flight identifyPurchaser via `sdkReady()` so screens that
+  mount right after sign-in don't race configure()). paywall.tsx + platnosc.tsx
+  render it; the literal '45,00 zł' survives only as FALLBACK_PRICE for Expo
+  Go / no offering. NOT yet OTA-published at the time of writing — check git
+  log. Subscription reconciliation (same day): RC's single paid subscriber
+  (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
+  subscription on Krys's own Google account (renews 18 Sept) — the app was
+  logged in as patrycja on a device using Krys's Google account. Play = one
+  sub per product per GOOGLE account → Krys's phone gets RC error code 6
+  "This product is already active for the user" for any app login; DON'T
+  restore purchases on a test login (RC would TRANSFER it → webhook revokes
+  patrycja). wojryba: INITIAL_PURCHASE 08-18 14:04 → CANCELLATION 14:09 →
+  EXPIRATION 08-25 (trial ended) — his purchase did work. All of it COMMITTED
   (master fa4a016, not pushed) and **published OTA** to channel production
   (update group b789a8e5-650e-40de-be38-3f7601f25741, runtime 1.0.0,
   commit fa4a016) — supersedes the 08-18 diagnostics update; users get it
