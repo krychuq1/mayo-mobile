@@ -114,13 +114,14 @@ export default function HomeScreen() {
         <ProfileMenu onSignOut={signOut} />
       </View>
 
+      {/* Claude Design templates/app-header: bare "Filtruj" + slider icon */}
       <View style={styles.filterRow}>
         <Pressable
           style={styles.filterBtn}
           onPress={() => setFilterOpen(true)}
           hitSlop={8}
-          accessibilityLabel="filtry">
-          <Text style={styles.filterText}>FILTRUJ</Text>
+          accessibilityLabel="Filtruj">
+          <Text style={styles.filterText}>Filtruj</Text>
           <Image
             source={require('../../assets/images/filter-sliders.svg')}
             style={styles.filterIcon}
@@ -209,28 +210,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
     zIndex: 30,
   },
   filterRow: {
     flexDirection: 'row',
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    paddingTop: 8,
     paddingBottom: 12,
   },
   filterBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
   },
   filterText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: fonts.semiBold,
-    letterSpacing: 0.84,
     color: colors.text,
   },
-  filterIcon: { width: 18, height: 18 },
+  filterIcon: { width: 22, height: 18 },
   feed: { flex: 1 },
   center: {
     flex: 1,

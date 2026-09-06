@@ -56,18 +56,29 @@ src/
                       #   (DELETE emutest Purchase → paywall; INSERT → poll → feed).
     home.tsx          # vinted-items feed: full-screen snap cards (FlatList pagingEnabled,
                       #   card height = list viewport via onLayout), pull-to-refresh,
-                      #   top bar = logo (28px) + ProfileMenu; FILTRUJ row opens FilterSheet;
+                      #   top bar = logo (28px) + ProfileMenu, padding 20/20/16 + "Filtruj" row
+                      #   (15px semibold dark + filter-sliders.svg 22x18, gap 10, padding 8/20/12)
+                      #   per app-header template (2026-09-06) opens FilterSheet;
                       #   client-side filtering: price range (priceWithShipping, bounds
                       #   floor/ceil from loaded items, null = off) + tag multi-select (OR);
                       #   empty-filter state "nic nie pasuje do filtrów 😢" + wyczyść;
                       #   data: vintedApi.getGeneral()
   components/
-    profile-menu.tsx  # "mój profil" pill + dropdown (Claude Design template): dane/płatność
-                      #   = Alert "wkrótce 👀" placeholders, wyloguj się (red + logout.svg).
-                      #   No outside-tap dismiss (toggle only). topBar needs zIndex 30.
+    profile-menu.tsx  # "Mój profil" BARE button + dropdown — Claude Design
+                      #   templates/app-header/AppHeader.dc.html (implemented 2026-09-06):
+                      #   user-dark.svg 16px + 15px semibold DARK label + chevron-{up,down}-dark
+                      #   14px, gap 8 (no pill/border since 09-06; shared by home/dane/platnosc/
+                      #   paywall). Menu 8px below: "Moje dane" / "Subskrypcja" / divider /
+                      #   "Wyloguj" — all 14px REGULAR dark, no icon, no red (user mockup
+                      #   2026-09-06; logout.svg now unused). No outside-tap dismiss (toggle
+                      #   only). topBar needs zIndex 30.
     filter-sheet.tsx  # full-screen filter Modal (design template): ZAKRES CEN dual slider +
                       #   TAGI dark/white toggle pills + WYCZYŚĆ (bg-deep) / ZOBACZ (dark)
-                      #   square buttons. NO statusBarTranslucent (header collided w/ status bar).
+                      #   square buttons. Since 2026-09-06: Modal is statusBarTranslucent +
+                      #   navigationBarTranslucent and pads inner top/bottom with
+                      #   useSafeAreaInsets (real phones drew the Modal under the status bar
+                      #   while the emulator inset it → X unreachable on the user's Samsung);
+                      #   close X hitSlop 16.
     range-slider.tsx  # custom dual-thumb PanResponder slider (2px dark track, 14px SQUARE
                       #   thumbs per design); live values via ref so responders stay fresh.
                       #   New icons in assets/images: chevron-up/down (blue), filter-sliders,
@@ -117,8 +128,8 @@ src/
                           #   .btn 16px/12-24 "Dodaj sosu, żeby wystylizować" / sold
                           #   "Sprzedane"; "Zobacz na Vinted" = dark 15px regular + link-dark
                           #   .svg, NO underline. Verified collapsed + expanded in emulator.
-                          #   NOT done from that template: header "Mój profil" bare button +
-                          #   "Filtruj" (sentence case) — home.tsx still has the pill + FILTRUJ.
+                          #   Header "Mój profil" bare button + "Filtruj" DONE 2026-09-06 via
+                          #   the app-header template (see profile-menu.tsx / home.tsx notes).
                           #   Description (2026-07-26, per design template): clamped to
                           #   2 lines; "więcej ⌄" / "mniej ⌃" toggle (chevron-up/down
                           #   svgs, 13px semibold heading-blue) shown only when the text

@@ -5,7 +5,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '@/lib/theme';
 
-/** "mój profil" pill + dropdown from the Claude Design product-detail template. */
+/**
+ * "Mój profil" bare button + dropdown — Claude Design
+ * templates/app-header/AppHeader.dc.html: user icon + 15px semibold dark
+ * label + chevron (no pill), menu 8px below with Moje dane / Subskrypcja /
+ * divider / Wyloguj (plain dark labels, no icon — user mockup 2026-09-06).
+ */
 export function ProfileMenu({ onSignOut }: { onSignOut: () => void }) {
   const [open, setOpen] = useState(false);
 
@@ -24,13 +29,18 @@ export function ProfileMenu({ onSignOut }: { onSignOut: () => void }) {
       <Pressable
         style={styles.button}
         onPress={() => setOpen((v) => !v)}
-        hitSlop={4}>
-        <Text style={styles.buttonText}>mój profil</Text>
+        hitSlop={8}
+        accessibilityLabel="Mój profil">
+        <Image
+          source={require('../../assets/images/user-dark.svg')}
+          style={styles.userIcon}
+        />
+        <Text style={styles.buttonText}>Mój profil</Text>
         <Image
           source={
             open
-              ? require('../../assets/images/chevron-up.svg')
-              : require('../../assets/images/chevron-down.svg')
+              ? require('../../assets/images/chevron-up-dark.svg')
+              : require('../../assets/images/chevron-down-dark.svg')
           }
           style={styles.chevron}
         />
@@ -39,10 +49,10 @@ export function ProfileMenu({ onSignOut }: { onSignOut: () => void }) {
       {open && (
         <View style={styles.menu}>
           <Pressable style={styles.menuItem} onPress={openDane}>
-            <Text style={styles.menuItemText}>dane</Text>
+            <Text style={styles.menuItemText}>Moje dane</Text>
           </Pressable>
           <Pressable style={styles.menuItem} onPress={openPlatnosc}>
-            <Text style={styles.menuItemText}>płatność</Text>
+            <Text style={styles.menuItemText}>Subskrypcja</Text>
           </Pressable>
           <View style={styles.divider} />
           <Pressable
@@ -51,11 +61,7 @@ export function ProfileMenu({ onSignOut }: { onSignOut: () => void }) {
               setOpen(false);
               onSignOut();
             }}>
-            <Image
-              source={require('../../assets/images/logout.svg')}
-              style={styles.logoutIcon}
-            />
-            <Text style={styles.signOutText}>wyloguj się</Text>
+            <Text style={styles.menuItemText}>Wyloguj</Text>
           </Pressable>
         </View>
       )}
@@ -71,25 +77,20 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#FAFAFA',
-    borderWidth: 1.5,
-    borderColor: colors.heading,
-    borderRadius: 999,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    gap: 8,
   },
+  userIcon: { width: 16, height: 16 },
   buttonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: fonts.semiBold,
-    color: colors.heading,
+    color: colors.text,
   },
   chevron: { width: 14, height: 14 },
   menu: {
     position: 'absolute',
     top: '100%',
     right: 0,
-    marginTop: 6,
+    marginTop: 8,
     minWidth: 170,
     backgroundColor: '#FAFAFA',
     borderWidth: 1,
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 14,
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.regular,
     color: colors.text,
   },
   divider: {
@@ -120,11 +121,5 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inputBorder,
     marginVertical: 6,
     marginHorizontal: 8,
-  },
-  logoutIcon: { width: 14, height: 14 },
-  signOutText: {
-    fontSize: 14,
-    fontFamily: fonts.semiBold,
-    color: colors.error,
   },
 });

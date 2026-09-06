@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RangeSlider } from '@/components/range-slider';
 import { VINTED_ITEM_TAGS, type VintedItemTag } from '@/lib/api';
@@ -36,17 +37,32 @@ export function FilterSheet({
   onClear: () => void;
   onClose: () => void;
 }) {
+  // Draw the modal edge-to-edge on every device (real phones did so anyway,
+  // the emulator did not) and pad with the safe-area insets ourselves.
+  const insets = useSafeAreaInsets();
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={onClose}>
       <View style={styles.sheet}>
-        <View style={styles.inner}>
+        <View
+          style={[
+            styles.inner,
+            {
+              paddingTop: 20 + insets.top,
+              paddingBottom: 40 + insets.bottom,
+            },
+          ]}>
           <View style={styles.header}>
             <View style={styles.headerSide} />
             <Text style={styles.headerTitle}>FILTRUJ</Text>
             <Pressable
               style={styles.headerSide}
               onPress={onClose}
-              hitSlop={8}
+              hitSlop={16}
               accessibilityLabel="zamknij">
               <Image
                 source={require('../../assets/images/close-x.svg')}
