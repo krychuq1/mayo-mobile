@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { MayoLogo } from '@/components/mayo-logo';
+import { HomeLogo } from '@/components/home-logo';
 import { ProfileMenu } from '@/components/profile-menu';
 import { Screen } from '@/components/screen';
 import { useAuth } from '@/lib/auth-context';
@@ -107,7 +107,7 @@ export default function PlatnoscScreen() {
   return (
     <Screen>
       <View style={styles.topBar}>
-        <MayoLogo width={73} />
+        <HomeLogo />
         <ProfileMenu onSignOut={signOut} />
       </View>
 

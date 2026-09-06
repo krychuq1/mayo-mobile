@@ -814,7 +814,17 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   account as a licence tester (else real 54,99 PLN). Product follow-up
   (real-user scenario): same Google account, different app email → code 6
   "already active" + no access; would need restore/TRANSFER handling (RC
-  TRANSFER webhook event is currently ignored by mayo-ba). Subscription reconciliation (same day): RC's single paid subscriber
+  TRANSFER webhook event is currently ignored by mayo-ba).
+  Account state after the sort-out (user, 2026-09-06): phone Play account =
+  krys.nagorny@gmail.com (its mayo sub is set to cancel, expires 18 Sept);
+  app login = patrycja.musur@gmail.com (the RC subscriber) → works.
+- ✅ 2026-09-06 (later): `src/components/home-logo.tsx` — top-bar logo is a
+  link (router.navigate to /home if hasAccess else /paywall); used on dane,
+  platnosc, paywall (home keeps the plain MayoLogo). Card CTA "Dodaj sosu,
+  żeby wystylizować" wrapped to 2 lines on the user's ~360dp phone (emulator
+  is 412dp) → `numberOfLines=1 + adjustsFontSizeToFit + minimumFontScale 0.8`,
+  paddingHorizontal 24→16. Emulator recipe for narrow phones: `adb shell wm
+  density 480` (1080px → 360dp), `adb shell wm density reset` after. Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
   logged in as patrycja on a device using Krys's Google account. Play = one

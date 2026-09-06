@@ -259,7 +259,12 @@ export function VintedItemCard({
                 style={[styles.primaryBtn, item.isSold && styles.btnDisabled]}
                 disabled={item.isSold}
                 onPress={openSauce}>
-                <Text style={styles.primaryBtnText}>
+                {/* one line on narrow phones (~360dp): shrink instead of wrapping */}
+                <Text
+                  style={styles.primaryBtnText}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}>
                   {item.isSold ? 'Sprzedane' : 'Dodaj sosu, żeby wystylizować'}
                 </Text>
               </Pressable>
@@ -489,7 +494,7 @@ const styles = StyleSheet.create({
     ...primaryButtonStyle,
     alignSelf: 'stretch',
     paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
   primaryBtnText: {
     color: '#FAFAFA',

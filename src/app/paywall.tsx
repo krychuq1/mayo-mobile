@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { MayoLogo } from '@/components/mayo-logo';
+import { HomeLogo } from '@/components/home-logo';
 import { ProfileMenu } from '@/components/profile-menu';
 import { Screen } from '@/components/screen';
 import { authApi } from '@/lib/api';
@@ -121,7 +121,7 @@ export default function PaywallScreen() {
   return (
     <Screen>
       <View style={styles.topBar}>
-        <MayoLogo width={73} />
+        <HomeLogo />
         <ProfileMenu onSignOut={signOut} />
       </View>
 
