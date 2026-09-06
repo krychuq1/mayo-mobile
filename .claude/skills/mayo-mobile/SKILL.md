@@ -721,7 +721,7 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
        from DB user.lastToken via node+Prisma one-liner).
      - **v5 AAB BUILT** (versionCode 5, upload-key signed, intent filter
        + versionCode verified in merged manifest) at
-       android\...\bundle\release\app-release.aab — NEXT: user uploads
+  android\app\build\outputs\bundle\release\app-release.aab — NEXT: user
        v5 to Play production. App Links only work in the store build
        (Expo Go can't register them; dev keeps using the polling flow).
   3. Committed: mayo-mobile master 64ff207 (not pushed), mayo-ba
@@ -848,7 +848,8 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
 - ✅ 2026-09-06 (night): **v6 AAB BUILT** (commit 963c45b, versionCode 6,
   upload-key signed CN=Mayo, verified in bundle: versionCode 6, RC key, new
   header/menu copy, launch-update code) at
-  androidppuild\outputsundleeleasepp-release.aab — NEXT: user
+  androidppuild\outputsundle
+eleasepp-release.aab — NEXT: user
   uploads to Play production. New in v6: `useLaunchUpdate()` in _layout.tsx
   holds the splash up to 8s for checkForUpdateAsync → fetchUpdateAsync →
   reloadAsync, so an OTA shows on the FIRST open (v5 users only ever got it
