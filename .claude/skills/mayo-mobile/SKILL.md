@@ -783,8 +783,9 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   waits for the in-flight identifyPurchaser via `sdkReady()` so screens that
   mount right after sign-in don't race configure()). paywall.tsx + platnosc.tsx
   render it; the literal '45,00 zł' survives only as FALLBACK_PRICE for Expo
-  Go / no offering. NOT yet OTA-published at the time of writing — check git
-  log. Subscription reconciliation (same day): RC's single paid subscriber
+  Go / no offering. OTA-published: group
+  **6cfa6d5d-cb68-45ba-bf7d-ed1f037b676a** (commit ed78215), verified key
+  present + live launchAsset hash == local export hash. Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
   logged in as patrycja on a device using Krys's Google account. Play = one
