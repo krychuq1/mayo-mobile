@@ -829,6 +829,29 @@ versionCode) still need a store build.
   text. Fix (done): `org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m`
   appended (BOM-free, via bash printf) to E:\gradle-cache\gradle.properties.
 - Expo Go dev flow is unaffected (updates config is inert there).
+- ⚠️⚠️ **`--environment production` IGNORES the local `.env`** (learned the hard
+  way 2026-09-06): the bundle is built with EAS *server-side* env vars for that
+  environment only. The EAS production env was EMPTY, so the design-round OTA
+  (group b789a8e5) shipped WITHOUT `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` →
+  `nativeBillingAvailable()` false → paywall CTA showed "Płatności działają w
+  aplikacji z Google Play" on the STORE build (user hit it on the phone). Very
+  likely the 08-18 diagnostics OTA (group 7998a073) had the same defect
+  (same flags, same empty env; CDN 403s non-client downloads so unproven) —
+  i.e. payments were probably broken for updated users 08-18 → 09-06.
+  FIX (done): `npx eas-cli env:create --environment production --name
+  EXPO_PUBLIC_REVENUECAT_ANDROID_KEY --value goog_… --visibility plaintext
+  --scope project --type string --non-interactive` (deprecated alias of
+  `eas env:set`; `eas env:list --environment production` to check — NO
+  `--non-interactive` on env:list), then republished → group
+  **bad68515-bede-4aac-8811-8f999f851b4f** (commit a0a3f27) is live and
+  VERIFIED: local export contains the key AND its sha256 (base64url) equals
+  the live manifest's launchAsset.hash. **Every future EXPO_PUBLIC_* var must
+  be added to the EAS env too.** Verify a publish: `grep -l <key>
+  dist/_expo/static/js/android/*.hbc` right after `eas update` (dist/ is the
+  export), and/or fetch the manifest: `curl https://u.expo.dev/<projectId>
+  -H "expo-channel-name: production" -H "expo-runtime-version: 1.0.0" -H
+  "expo-platform: android" -H "expo-protocol-version: 1" -H "accept:
+  multipart/mixed"` and compare launchAsset.hash to the local file's hash.
 
 ## Local Android release APK (first done 2026-07-24 — prod testing on a phone)
 
