@@ -90,8 +90,9 @@ src/
                       #   border) then "Dokumenty" links Polityka prywatności + Regulamin
                       #   (15px semibold + arrow-up-right.svg) → mayo-app.com/privacy-policy
                       #   and /terms-and-conditions (both live). Below the card: "Usuń konto"
-                      #   underlined 16px regular w/ alert-octagon.svg (red) + 13px muted
-                      #   caption; confirm Alert → DELETE /auth/me → signOut. ProfileMenu uses
+                      #   underlined 13px regular w/ alert-octagon.svg 14px (red) + 13px muted
+                      #   caption (shrunk from 16/18 on 2026-09-06, user request; caption says
+                      #   "zakładka Subskrypcja"); confirm Alert → DELETE /auth/me → signOut. ProfileMenu uses
                       #   router.navigate (not push) so dane→dane doesn't stack a duplicate.
                       #   Sentence-case copy here on purpose (matches the design).
   app/platnosc.tsx    # "Subskrypcja" — Claude Design templates/my-subscription/

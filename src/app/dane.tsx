@@ -121,7 +121,7 @@ export default function DaneScreen() {
           </Pressable>
           <Text style={styles.caption}>
             Usunięcie konta jest nieodwracalne. Subskrypcję anulujesz osobno w
-            Google Play (zakładka płatność).
+            Google Play (zakładka Subskrypcja).
           </Text>
         </View>
       </ScrollView>
@@ -212,11 +212,11 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingHorizontal: 24,
   },
-  deleteLink: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  deleteLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   disabled: { opacity: 0.6 },
-  deleteIcon: { width: 18, height: 18 },
+  deleteIcon: { width: 14, height: 14 },
   deleteText: {
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: fonts.regular,
     color: colors.text,
     textDecorationLine: 'underline',
