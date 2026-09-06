@@ -50,6 +50,36 @@ export async function identifyPurchaser(email: string): Promise<void> {
 
 export type NativePurchaseResult = 'purchased' | 'cancelled';
 
+/** RevenueCat entitlement id granted by the mayo_monthly product. */
+const ENTITLEMENT_ID = 'access';
+
+export type SubscriptionInfo = {
+  /** When the current period ends — next charge if `willRenew`, else access end. */
+  expirationDate: Date | null;
+  willRenew: boolean;
+  /** 'TRIAL' | 'INTRO' | 'NORMAL' (RevenueCat period type). */
+  periodType: string;
+};
+
+/**
+ * Store-side view of the active subscription (billing date, auto-renew) —
+ * mayo-ba only knows "has access", RevenueCat knows the schedule. Returns
+ * null in Expo Go, before configure(), or when nothing is active.
+ */
+export async function getSubscriptionInfo(): Promise<SubscriptionInfo | null> {
+  if (!nativeBillingAvailable() || !configured) return null;
+  const Purchases = await getPurchases();
+  const info = await withTimeout(Purchases.getCustomerInfo(), 15_000, 'getCustomerInfo');
+  const active = info.entitlements.active;
+  const ent = active[ENTITLEMENT_ID] ?? Object.values(active)[0];
+  if (!ent) return null;
+  return {
+    expirationDate: ent.expirationDate ? new Date(ent.expirationDate) : null,
+    willRenew: ent.willRenew,
+    periodType: ent.periodType,
+  };
+}
+
 /** Reject after `ms` so a wedged native call can't spin the UI forever. */
 function withTimeout<T>(p: Promise<T>, ms: number, step: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {

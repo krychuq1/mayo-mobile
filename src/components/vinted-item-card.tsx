@@ -191,13 +191,18 @@ export function VintedItemCard({
 
                   <View style={styles.metaRow}>
                     <Text style={styles.size} numberOfLines={1}>
-                      rozmiar {item.size}
+                      {item.size}
                     </Text>
+                    {/* design: blue price "w tym" + shield = shipping included */}
                     <View style={styles.priceRow}>
-                      <Text style={styles.priceShippingLabel}>z wysyłką</Text>
                       <Text style={styles.price}>
                         {formatPln(item.priceWithShipping)}
                       </Text>
+                      <Text style={styles.priceIncluded}>w tym</Text>
+                      <Image
+                        source={require('../../assets/images/shield-check-blue.svg')}
+                        style={styles.priceIcon}
+                      />
                     </View>
                   </View>
                 </>
@@ -238,8 +243,8 @@ export function VintedItemCard({
                       <Image
                         source={
                           descOpen
-                            ? require('../../assets/images/chevron-up.svg')
-                            : require('../../assets/images/chevron-down.svg')
+                            ? require('../../assets/images/chevron-up-dark.svg')
+                            : require('../../assets/images/chevron-down-dark.svg')
                         }
                         style={styles.descToggleIcon}
                       />
@@ -255,11 +260,18 @@ export function VintedItemCard({
                 disabled={item.isSold}
                 onPress={openSauce}>
                 <Text style={styles.primaryBtnText}>
-                  {item.isSold ? 'sprzedane 👀' : 'dodaj sosu'}
+                  {item.isSold ? 'Sprzedane' : 'Dodaj sosu, żeby wystylizować'}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => Linking.openURL(item.link)} hitSlop={8}>
-                <Text style={styles.vintedLink}>zobacz na vinted</Text>
+              <Pressable
+                style={styles.vintedLink}
+                onPress={() => Linking.openURL(item.link)}
+                hitSlop={8}>
+                <Image
+                  source={require('../../assets/images/link-dark.svg')}
+                  style={styles.vintedLinkIcon}
+                />
+                <Text style={styles.vintedLinkText}>Zobacz na Vinted</Text>
               </Pressable>
             </View>
           </View>
@@ -414,20 +426,22 @@ const styles = StyleSheet.create({
     gap: 4,
     marginTop: 6,
   },
+  // design: underlined dark "więcej"/"mniej" (weight 500 → regular here)
   descToggleText: {
-    color: colors.heading,
-    fontSize: 13,
-    fontFamily: fonts.semiBold,
+    color: colors.text,
+    fontSize: 15,
+    fontFamily: fonts.regular,
+    textDecorationLine: 'underline',
   },
   descToggleIcon: {
     width: 14,
     height: 14,
   },
   title: {
-    fontSize: 16,
-    lineHeight: 21,
+    fontSize: 18,
+    lineHeight: 23,
     fontFamily: fonts.bold,
-    color: colors.heading,
+    color: colors.text,
   },
   metaRow: {
     flexDirection: 'row',
@@ -436,31 +450,31 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   size: {
-    fontSize: 13,
-    fontFamily: fonts.semiBold,
+    fontSize: 15,
+    fontFamily: fonts.regular,
     color: colors.text,
     flexShrink: 1,
   },
   priceRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
+    alignItems: 'center',
+    gap: 5,
     flexShrink: 0,
   },
   price: {
     fontSize: 17,
     fontFamily: fonts.bold,
-    color: colors.primary,
+    color: colors.heading,
   },
-  priceShippingLabel: {
-    fontSize: 12,
+  priceIncluded: {
+    fontSize: 15,
     fontFamily: fonts.regular,
-    color: colors.text,
-    opacity: 0.6,
+    color: colors.heading,
   },
+  priceIcon: { width: 16, height: 16 },
   description: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 23,
     fontFamily: fonts.regular,
     color: colors.text,
   },
@@ -470,24 +484,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingBottom: 8,
   },
-  // web .btn--small: smaller font + tighter padding, still full width
+  // DS .btn: 16px semibold, padding 12/24, full width
   primaryBtn: {
     ...primaryButtonStyle,
     alignSelf: 'stretch',
-    padding: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
   },
   primaryBtnText: {
     color: '#FAFAFA',
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: fonts.semiBold,
   },
   btnDisabled: {
     opacity: 0.7,
   },
+  // design: plain dark text + link icon, no underline
   vintedLink: {
-    color: colors.heading,
-    fontSize: 14,
-    fontFamily: fonts.semiBold,
-    textDecorationLine: 'underline',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  vintedLinkIcon: { width: 16, height: 16 },
+  vintedLinkText: {
+    color: colors.text,
+    fontSize: 15,
+    fontFamily: fonts.regular,
   },
 });

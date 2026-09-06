@@ -43,12 +43,17 @@ src/
     login.tsx         # welcome-screen port: logo/sosik/clothes + email form (Polish)
     check-email.tsx   # polls activation every 3s + on app foreground; on signedIn
                       #   routes to '/' so the index gate decides feed vs paywall
-    paywall.tsx       # 7-day-trial paywall (Claude Design templates/paywall/): white
-                      #   card w/ "7 DNI ZA 0 ZŁ" badge, 45,00 zł/mies., "zaczynamy!"
-                      #   → POST /checkout/subscription → Linking.openURL(stripe url);
-                      #   polls refreshAccess every 3s + on foreground → /home when
-                      #   trial recorded; "nie teraz, dzięki" = signOut. Verified
-                      #   end-to-end in emulator 2026-07-26 (real Stripe test payment).
+    paywall.tsx       # 7-day-trial paywall — Claude Design templates/paywall/Paywall.dc.html
+                      #   (re-implemented 2026-09-06): top bar logo + ProfileMenu; card gap 20:
+                      #   title 24px blue "Rozpocznij 7-dniowy okres próbny za 0 zł" + 3
+                      #   benefit bullets (check-muted.svg 16px, 14px text; BENEFITS const)
+                      #   with bottom border; "Aktualnie" + green "0,00 zł" badge + 13px muted
+                      #   note; "Po okresie próbnym" / "45,00 zł / mies." 15px; orange pill
+                      #   "Wypróbuj za 0 zł" (RevenueCat purchaseSubscription; Expo Go → info
+                      #   error) + "Brak ukrytych opłat…" caption; BELOW the card underlined
+                      #   "Nie teraz, dzięki" = signOut. Logic unchanged: polls refreshAccess
+                      #   every 3s + on foreground → /home. Verified in emulator 2026-09-06
+                      #   (DELETE emutest Purchase → paywall; INSERT → poll → feed).
     home.tsx          # vinted-items feed: full-screen snap cards (FlatList pagingEnabled,
                       #   card height = list viewport via onLayout), pull-to-refresh,
                       #   top bar = logo (28px) + ProfileMenu; FILTRUJ row opens FilterSheet;
@@ -67,6 +72,29 @@ src/
                       #   thumbs per design); live values via ref so responders stay fresh.
                       #   New icons in assets/images: chevron-up/down (blue), filter-sliders,
                       #   close-x (dark), logout (red) — static SVGs, rendered by expo-image.
+  app/dane.tsx        # "Moje dane" — Claude Design templates/personal-data/PersonalData.dc.html
+                      #   (implemented 2026-09-06): top bar = logo + ProfileMenu (no back arrow,
+                      #   hardware back works); white card at TOP (not centered): "Moje dane"
+                      #   22px bold blue + Email row (muted label / semibold value, bottom
+                      #   border) then "Dokumenty" links Polityka prywatności + Regulamin
+                      #   (15px semibold + arrow-up-right.svg) → mayo-app.com/privacy-policy
+                      #   and /terms-and-conditions (both live). Below the card: "Usuń konto"
+                      #   underlined 16px regular w/ alert-octagon.svg (red) + 13px muted
+                      #   caption; confirm Alert → DELETE /auth/me → signOut. ProfileMenu uses
+                      #   router.navigate (not push) so dane→dane doesn't stack a duplicate.
+                      #   Sentence-case copy here on purpose (matches the design).
+  app/platnosc.tsx    # "Subskrypcja" — Claude Design templates/my-subscription/
+                      #   MySubscription.dc.html (implemented 2026-09-06): same top bar as
+                      #   dane; card gap 18: title 24px blue + "Konto: <email>" (bottom
+                      #   border); "Plan: Mayo Standard" + badge (Aktywna green #D9F2DF/
+                      #   #1A7F37 radius 8; Nieaktywna grey; Anulowana = active but
+                      #   willRenew=false, bg-deep/#9B7556); "Cena" **45,00 zł** / mies.;
+                      #   "Kolejna płatność" (or "Dostęp do" when cancelled) bold Polish
+                      #   date via `getSubscriptionInfo()` in purchases.ts (RC
+                      #   getCustomerInfo → entitlement `access` expirationDate/willRenew;
+                      #   null in Expo Go / unconfigured → row HIDDEN — only visible in a
+                      #   store/dev build); orange pill "Zarządzaj subskrypcją" (12/24
+                      #   padding per .btn) → Play subscription manager + muted caption.
     vinted-item-card.tsx  # feed slide implementing the Claude Design "Product detail"
                           #   template (Mayo Design System project, templates/product-detail/):
                           #   white card w/ swipeable photo carousel (orange position dots,
@@ -79,7 +107,18 @@ src/
                           #   (🥫 placeholder if empty) with a back-arrow chip
                           #   (assets/images/arrow-back.svg, copied from mayo-fe) that
                           #   spins it back. Verified in emulator 2026-07-23.
-                          #   "zobacz na vinted" = underlined blue text link (per design).
+                          #   Template round 3 (2026-09-06, current design): title 18px bold
+                          #   DARK (was blue); meta row = bare size "XS / 34 / 6" 15px regular
+                          #   (no "rozmiar") + BLUE price block "18,05 zł" bold 17 + "w tym"
+                          #   15 + shield-check-blue.svg (= shipping included); description
+                          #   15px/23; "więcej"/"mniej" toggle = dark underlined 15px regular
+                          #   + chevron-{down,up}-dark.svg (still only when >2 lines — design
+                          #   shows it always, kept the overflow check on purpose); CTA = DS
+                          #   .btn 16px/12-24 "Dodaj sosu, żeby wystylizować" / sold
+                          #   "Sprzedane"; "Zobacz na Vinted" = dark 15px regular + link-dark
+                          #   .svg, NO underline. Verified collapsed + expanded in emulator.
+                          #   NOT done from that template: header "Mój profil" bare button +
+                          #   "Filtruj" (sentence case) — home.tsx still has the pill + FILTRUJ.
                           #   Description (2026-07-26, per design template): clamped to
                           #   2 lines; "więcej ⌄" / "mniej ⌃" toggle (chevron-up/down
                           #   svgs, 13px semibold heading-blue) shown only when the text
@@ -395,8 +434,14 @@ Port 3000 is taken by digibate-ba (IPv6 `::`) on this PC — that's why mayo-ba 
 
 - **Web (`npm run web`) does NOT work** for auth — expo-secure-store has no web implementation.
 - **Android emulator (PC, no phone):** already set up on this PC (see Environment facts).
-  Start the emulator, then `npm run android` in `E:\mayo-mobile`. Emulator reaches the PC's
-  LAN IP automatically via env.ts host detection (fallback alias for host localhost: `10.0.2.2`).
+  Start the emulator, then (since 2026-09-06) **`npx expo start --go`** in `E:\mayo-mobile`
+  and open `exp://<pc-lan-ip>:8081` in Expo Go (`adb shell am start -a
+  android.intent.action.VIEW -d exp://<ip>:8081 host.exp.exponent`). ⚠️ `npm run android`
+  now = `expo run:android` (a NATIVE gradle build, because `android/` exists from prebuild)
+  and dies with "JAVA_HOME is not set" — not what you want for design iteration anyway.
+  Don't prefix `CI=1` (disables Fast Refresh); pass `< /dev/null` for stdin instead.
+  Emulator reaches the PC's LAN IP automatically via env.ts host detection (fallback alias
+  for host localhost: `10.0.2.2`).
   Start command:
   `$env:ANDROID_AVD_HOME='E:\android-avd'; & "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe" -avd Pixel_7 -no-metrics`
 - **Physical Android phone (Expo Go):** ⚠️ the **Play Store Expo Go is SDK 54** and rejects
@@ -714,7 +759,27 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   PC has TWO LAN IPs now: Ethernet 192.168.0.105 (lower metric — Metro
   advertises it, dev CLIENT_URL set to it) and WiFi .104. Emulator is
   signed in as emutest again (fresh magic-link session from the deep-
-  link test).
+  link test). ⚠️ 2026-09-06: IPs moved AGAIN — Ethernet **.108** (Metro),
+  WiFi .103; mayo-ba dev CLIENT_URL still says .105 (only matters for
+  phone magic-link clicks; emulator uses the DB-flag trick).
+
+- ✅ 2026-09-06: **dane screen redesigned** to the Claude Design
+  personal-data template (see app/dane.tsx notes in App structure); new
+  icons arrow-up-right.svg + alert-octagon.svg; profile-menu push→navigate.
+  Verified in emulator (layout, Regulamin opens Chrome, dane→dane→back
+  lands on feed). **platnosc screen redesigned** to the my-subscription
+  template (see app/platnosc.tsx notes) + `getSubscriptionInfo()` added to
+  purchases.ts; verified layout in emulator (date row untestable in Expo
+  Go). **paywall redesigned** to the paywall template (see paywall.tsx
+  notes; new check-muted.svg). emutest's dev-grant Purchase row was
+  deleted + re-inserted (stripeCustomerId 'dev') during the test.
+  **Product card updated** to the current product-detail template (see
+  vinted-item-card.tsx "round 3" notes; new icons chevron-down-dark,
+  chevron-up-dark, link-dark, shield-check-blue). ⚠️ Fast Refresh can silently drop ("Cannot connect to Expo CLI"
+  toast) — if a screenshot shows stale UI, force-stop Expo Go and re-open
+  the exp:// URL. tsc clean. NOT committed. Dev flow this session:
+  backend `npm run start:dev` (mayo-ba on branch prod) + `npx expo start
+  --go` + Expo Go on Pixel_7 (see Running & testing).
 
 - 🔎 2026-08-18 (payment debug): **prod user wojryba@gmail.com — paywall CTA
   spins forever.** Server showed NOTHING (expected: store billing never touches

@@ -5,24 +5,28 @@ import {
   Alert,
   Linking,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
 import { MayoLogo } from '@/components/mayo-logo';
+import { ProfileMenu } from '@/components/profile-menu';
 import { Screen } from '@/components/screen';
 import { authApi, ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { colors, fonts } from '@/lib/theme';
 
 const PRIVACY_POLICY_URL = 'https://mayo-app.com/privacy-policy';
+const TERMS_URL = 'https://mayo-app.com/terms-and-conditions';
 
 /**
- * "dane" profile screen: account e-mail, privacy-policy link and account
- * deletion — both required by Google Play (in-app privacy link + in-app
- * account deletion). Deleting does NOT cancel a Play subscription, hence
- * the warning copy.
+ * "Moje dane" profile screen — Claude Design template
+ * templates/personal-data/PersonalData.dc.html: account e-mail, document
+ * links (privacy policy + terms) and account deletion — both required by
+ * Google Play (in-app privacy link + in-app account deletion). Deleting does
+ * NOT cancel a Play subscription, hence the warning copy.
  */
 export default function DaneScreen() {
   const { status, user, token, signOut } = useAuth();
@@ -32,11 +36,12 @@ export default function DaneScreen() {
     if (status !== 'signedIn') router.replace('/');
   }, [status]);
 
-  const openPrivacyPolicy = () => {
-    Linking.openURL(PRIVACY_POLICY_URL).catch(() => {});
+  const open = (url: string) => () => {
+    Linking.openURL(url).catch(() => {});
   };
 
   const confirmDelete = () => {
+    if (deleting) return;
     Alert.alert(
       'usunąć konto?',
       'to jest nieodwracalne — znikną wszystkie Twoje dane. aktywną subskrypcję anuluj osobno w Google Play.',
@@ -71,51 +76,72 @@ export default function DaneScreen() {
   return (
     <Screen>
       <View style={styles.topBar}>
-        <Pressable onPress={() => router.back()} hitSlop={8}>
-          <Image
-            source={require('../../assets/images/arrow-back.svg')}
-            style={styles.backIcon}
-          />
-        </Pressable>
         <MayoLogo width={73} />
-        <View style={styles.backIcon} />
+        <ProfileMenu onSignOut={signOut} />
       </View>
 
-      <View style={styles.body}>
+      <ScrollView
+        contentContainerStyle={styles.body}
+        keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
-          <View style={styles.intro}>
-            <Text style={styles.title}>dane</Text>
-            {user?.email && <Text style={styles.subtitle}>{user.email}</Text>}
-          </View>
-
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>E-mail</Text>
-            <Text style={styles.rowValue} numberOfLines={1}>
-              {user?.email ?? ''}
-            </Text>
-          </View>
-
-          <Pressable onPress={openPrivacyPolicy} hitSlop={4}>
-            <Text style={styles.link}>polityka prywatności</Text>
-          </Pressable>
-
-          <View style={styles.actions}>
-            <Pressable
-              style={[styles.deleteButton, deleting && styles.buttonDisabled]}
-              onPress={confirmDelete}
-              disabled={deleting}>
-              <Text style={styles.deleteButtonText}>
-                {deleting ? 'usuwanie…' : 'usuń konto'}
+          <View style={styles.section}>
+            <Text style={styles.heading}>Moje dane</Text>
+            <View style={styles.emailRow}>
+              <Text style={styles.emailLabel}>Email</Text>
+              <Text style={styles.emailValue} numberOfLines={1}>
+                {user?.email ?? ''}
               </Text>
-            </Pressable>
-            <Text style={styles.caption}>
-              Usunięcie konta jest nieodwracalne. Subskrypcję anulujesz
-              osobno w Google Play (zakładka płatność).
-            </Text>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.heading}>Dokumenty</Text>
+            <DocLink
+              label="Polityka prywatności"
+              onPress={open(PRIVACY_POLICY_URL)}
+            />
+            <DocLink label="Regulamin" onPress={open(TERMS_URL)} />
           </View>
         </View>
-      </View>
+
+        <View style={styles.danger}>
+          <Pressable
+            style={[styles.deleteLink, deleting && styles.disabled]}
+            onPress={confirmDelete}
+            disabled={deleting}
+            hitSlop={8}
+            accessibilityRole="button">
+            <Image
+              source={require('../../assets/images/alert-octagon.svg')}
+              style={styles.deleteIcon}
+            />
+            <Text style={styles.deleteText}>
+              {deleting ? 'Usuwanie…' : 'Usuń konto'}
+            </Text>
+          </Pressable>
+          <Text style={styles.caption}>
+            Usunięcie konta jest nieodwracalne. Subskrypcję anulujesz osobno w
+            Google Play (zakładka płatność).
+          </Text>
+        </View>
+      </ScrollView>
     </Screen>
+  );
+}
+
+function DocLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      style={styles.docLink}
+      onPress={onPress}
+      hitSlop={6}
+      accessibilityRole="link">
+      <Text style={styles.docLinkText}>{label}</Text>
+      <Image
+        source={require('../../assets/images/arrow-up-right.svg')}
+        style={styles.docLinkIcon}
+      />
+    </Pressable>
   );
 }
 
@@ -127,13 +153,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 8,
+    zIndex: 30,
   },
-  backIcon: { width: 22, height: 22 },
   body: {
-    flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 32,
-    justifyContent: 'center',
   },
   card: {
     alignSelf: 'center',
@@ -150,57 +175,55 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  intro: { gap: 4 },
-  title: {
-    fontSize: 24,
-    lineHeight: 30,
+  section: { gap: 14 },
+  heading: {
+    fontSize: 22,
+    lineHeight: 28,
     fontFamily: fonts.bold,
     color: colors.heading,
   },
-  subtitle: {
-    fontSize: 14,
-    fontFamily: fonts.regular,
-    color: colors.muted,
-  },
-  row: {
+  emailRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.inputBorder,
-    paddingTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.inputBorder,
+    paddingBottom: 16,
   },
-  rowLabel: { fontSize: 14, fontFamily: fonts.semiBold, color: colors.text },
-  rowValue: {
+  emailLabel: { fontSize: 14, fontFamily: fonts.regular, color: colors.muted },
+  emailValue: {
     flexShrink: 1,
     fontSize: 14,
-    fontFamily: fonts.regular,
-    color: colors.muted,
-  },
-  link: {
-    fontSize: 14,
     fontFamily: fonts.semiBold,
-    color: colors.heading,
+    color: colors.text,
+  },
+  docLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+  },
+  docLinkText: { fontSize: 15, fontFamily: fonts.semiBold, color: colors.text },
+  docLinkIcon: { width: 14, height: 14 },
+  danger: {
+    alignItems: 'center',
+    gap: 12,
+    paddingTop: 32,
+    paddingHorizontal: 24,
+  },
+  deleteLink: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  disabled: { opacity: 0.6 },
+  deleteIcon: { width: 18, height: 18 },
+  deleteText: {
+    fontSize: 16,
+    fontFamily: fonts.regular,
+    color: colors.text,
     textDecorationLine: 'underline',
   },
-  actions: { alignItems: 'center', gap: 12 },
-  deleteButton: {
-    width: '100%',
-    backgroundColor: colors.error,
-    borderRadius: 28,
-    padding: 16,
-    alignItems: 'center',
-  },
-  buttonDisabled: { opacity: 0.7 },
-  deleteButtonText: {
-    color: '#FAFAFA',
-    fontSize: 16,
-    fontFamily: fonts.semiBold,
-  },
   caption: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 20,
     fontFamily: fonts.regular,
     color: colors.muted,
     textAlign: 'center',

@@ -11,12 +11,12 @@ export function ProfileMenu({ onSignOut }: { onSignOut: () => void }) {
 
   const openDane = () => {
     setOpen(false);
-    router.push('/dane');
+    router.navigate('/dane'); // navigate (not push): no duplicate when already on /dane
   };
 
   const openPlatnosc = () => {
     setOpen(false);
-    router.push('/platnosc');
+    router.navigate('/platnosc');
   };
 
   return (

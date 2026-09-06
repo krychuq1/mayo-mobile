@@ -1,15 +1,18 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
 import { MayoLogo } from '@/components/mayo-logo';
+import { ProfileMenu } from '@/components/profile-menu';
 import { Screen } from '@/components/screen';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -22,13 +25,19 @@ import { colors, fonts } from '@/lib/theme';
 
 const POLL_MS = 3000;
 
+const BENEFITS = [
+  'Pełny dostęp do wszystkich rzeczy i filtrów',
+  'Co miesiąc minimum 15 nowych rzeczy',
+  'Anulujesz jednym kliknięciem bez ukrytych opłat',
+];
+
 /**
  * Trial paywall (Claude Design templates/paywall/Paywall.dc.html): shown to a
- * signed-in user who never started the 7-day trial. "zaczynamy!" opens the
- * native store payment sheet via RevenueCat; the RevenueCat → mayo-ba webhook
- * records the purchase and the 3s poll here lets the user through to the feed.
- * Store billing only — in Expo Go (no native module) grant dev access by
- * inserting an app-subscription Purchase row into the local DB.
+ * signed-in user who never started the 7-day trial. "Wypróbuj za 0 zł" opens
+ * the native store payment sheet via RevenueCat; the RevenueCat → mayo-ba
+ * webhook records the purchase and the 3s poll here lets the user through to
+ * the feed. Store billing only — in Expo Go (no native module) grant dev
+ * access by inserting an app-subscription Purchase row into the local DB.
  */
 export default function PaywallScreen() {
   const { status, token, hasAccess, refreshAccess, signOut } = useAuth();
@@ -50,8 +59,8 @@ export default function PaywallScreen() {
     }
   }, [refreshAccess]);
 
-  // Poll for the completed checkout; also re-check on app foreground
-  // (the user comes back from the Stripe browser tab).
+  // Poll for the recorded purchase; also re-check on app foreground
+  // (the user comes back from the store payment sheet).
   useEffect(() => {
     pollRef.current = setInterval(check, POLL_MS);
     const sub = AppState.addEventListener('change', (s) => {
@@ -94,29 +103,46 @@ export default function PaywallScreen() {
 
   return (
     <Screen>
-      <View style={styles.header}>
+      <View style={styles.topBar}>
         <MayoLogo width={73} />
+        <ProfileMenu onSignOut={signOut} />
       </View>
 
-      <View style={styles.body}>
+      <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.card}>
           <View style={styles.intro}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>7 DNI ZA 0 ZŁ</Text>
+            <Text style={styles.title}>
+              Rozpocznij 7-dniowy okres próbny za 0 zł
+            </Text>
+            <View style={styles.benefits}>
+              {BENEFITS.map((b) => (
+                <View key={b} style={styles.benefit}>
+                  <Image
+                    source={require('../../assets/images/check-muted.svg')}
+                    style={styles.benefitIcon}
+                  />
+                  <Text style={styles.benefitText}>{b}</Text>
+                </View>
+              ))}
             </View>
-            <Text style={styles.title}>Rozpocznij 7 dniowy trial</Text>
-            <Text style={styles.subtitle}>
-              Pełny dostęp do wszystkich fitów i filtrów. Możesz zrezygnować w
-              każdej chwili — bez pytań, bez haczyków.
+          </View>
+
+          <View style={styles.nowBlock}>
+            <View style={styles.row}>
+              <Text style={styles.line}>Aktualnie</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>0,00 zł</Text>
+              </View>
+            </View>
+            <Text style={styles.note}>
+              Dziś pobieramy 0 zł. Przypomnimy Ci o końcu okresu próbnego 2 dni
+              wcześniej
             </Text>
           </View>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Po trialu</Text>
-            <Text>
-              <Text style={styles.priceValue}>45,00 zł</Text>
-              <Text style={styles.priceUnit}>/mies.</Text>
-            </Text>
+          <View style={styles.rowBaseline}>
+            <Text style={styles.line}>Po okresie próbnym</Text>
+            <Text style={styles.line}>45,00 zł / mies.</Text>
           </View>
 
           <View style={styles.actions}>
@@ -127,36 +153,40 @@ export default function PaywallScreen() {
               {starting ? (
                 <ActivityIndicator color={colors.fontWhite} />
               ) : (
-                <Text style={styles.buttonText}>zaczynamy!</Text>
+                <Text style={styles.buttonText}>Wypróbuj za 0 zł</Text>
               )}
             </Pressable>
             {error && <Text style={styles.error}>{error}</Text>}
             <Text style={styles.caption}>
-              Bez zobowiązań. Anulujesz kiedy chcesz.
+              Brak ukrytych opłat. Anuluj w dowolnym momencie.
             </Text>
-            <Pressable onPress={signOut} hitSlop={8}>
-              <Text style={styles.link}>nie teraz, dzięki</Text>
-            </Pressable>
           </View>
         </View>
-      </View>
+
+        <View style={styles.dismiss}>
+          <Pressable onPress={signOut} hitSlop={8} accessibilityRole="link">
+            <Text style={styles.dismissText}>Nie teraz, dzięki</Text>
+          </Pressable>
+        </View>
+      </ScrollView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  // row + justifyContent so MayoLogo's own alignSelf can't win — design centers it
-  header: {
+  topBar: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    paddingTop: 24,
-    paddingBottom: 20,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 8,
+    zIndex: 30,
   },
   body: {
-    flex: 1,
     paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 32,
-    justifyContent: 'center',
   },
   // DS .card: white, radius 16, soft shadow
   card: {
@@ -167,58 +197,70 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingVertical: 24,
     paddingHorizontal: 20,
-    gap: 22,
+    gap: 20,
     shadowColor: colors.text,
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
-  intro: { gap: 8 },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.primary,
-    borderRadius: 999,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-  },
-  badgeText: {
-    color: colors.fontWhite,
-    fontFamily: fonts.bold,
-    fontSize: 11,
-    letterSpacing: 0.88,
+  intro: {
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.inputBorder,
+    paddingBottom: 18,
   },
   title: {
     fontSize: 24,
-    lineHeight: 30,
+    lineHeight: 31,
     fontFamily: fonts.bold,
     color: colors.heading,
   },
-  subtitle: {
+  benefits: { gap: 6 },
+  benefit: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
+  benefitIcon: { width: 16, height: 16, marginTop: 3 },
+  benefitText: {
+    flex: 1,
     fontSize: 14,
-    lineHeight: 22,
+    lineHeight: 21,
     fontFamily: fonts.regular,
-    color: colors.muted,
+    color: colors.text,
   },
-  priceRow: {
+  nowBlock: { gap: 8 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  rowBaseline: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
     gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.inputBorder,
-    paddingTop: 16,
   },
-  priceLabel: { fontSize: 14, fontFamily: fonts.semiBold, color: colors.text },
-  priceValue: { fontSize: 20, fontFamily: fonts.bold, color: colors.primary },
-  priceUnit: { fontSize: 13, fontFamily: fonts.regular, color: colors.muted },
-  actions: { alignItems: 'center', gap: 10 },
+  line: { fontSize: 15, fontFamily: fonts.regular, color: colors.text },
+  badge: {
+    backgroundColor: '#D9F2DF',
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  badgeText: { fontSize: 14, fontFamily: fonts.bold, color: '#1A7F37' },
+  note: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontFamily: fonts.regular,
+    color: colors.muted,
+  },
+  actions: { alignItems: 'center', gap: 12 },
   // DS .btn: orange pill, semibold, full width
   button: {
     width: '100%',
     backgroundColor: colors.primary,
     borderRadius: 28,
-    padding: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     alignItems: 'center',
   },
   buttonDisabled: { opacity: 0.7 },
@@ -230,15 +272,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   caption: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: fonts.regular,
     color: colors.muted,
     textAlign: 'center',
   },
-  link: {
-    fontSize: 13,
-    fontFamily: fonts.semiBold,
-    color: colors.heading,
+  dismiss: { alignItems: 'center', paddingTop: 28 },
+  dismissText: {
+    fontSize: 15,
+    fontFamily: fonts.regular,
+    color: colors.text,
     textDecorationLine: 'underline',
   },
 });
