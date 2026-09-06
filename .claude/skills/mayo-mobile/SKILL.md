@@ -844,7 +844,22 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   f81851b9-2746-48df-a00b-b87963253750 (superseded). Then smaller "Usuń konto"
   on dane (commit 277783a) → **OTA group 4e9ae519-dde7-4450-b0d5-a910585dec33
   is CURRENT LIVE** (RC key present, live launchAsset hash == local export).
-  master still NOT pushed to GitHub. master is many commits
+  master still NOT pushed to GitHub.
+- ✅ 2026-09-06 (night): **v6 AAB BUILT** (commit 963c45b, versionCode 6,
+  upload-key signed CN=Mayo, verified in bundle: versionCode 6, RC key, new
+  header/menu copy, launch-update code) at
+  androidppuild\outputsundleeleasepp-release.aab — NEXT: user
+  uploads to Play production. New in v6: `useLaunchUpdate()` in _layout.tsx
+  holds the splash up to 8s for checkForUpdateAsync → fetchUpdateAsync →
+  reloadAsync, so an OTA shows on the FIRST open (v5 users only ever got it
+  on the 2nd launch; a fresh v5 install ran the stale embedded August JS
+  once). app.json `updates.checkAutomatically: ON_ERROR_RECOVERY` (manifest
+  EXPO_UPDATES_CHECK_ON_LAUNCH=ERROR_RECOVERY_ONLY, edited directly in
+  android/ — no prebuild run) so the native check doesn't race the JS one.
+  Runtime version stays 1.0.0 (no native module changes) → the same OTA
+  channel serves v5 and v6. Expo Go: Updates.isEnabled false → check
+  skipped. Build recipe unchanged (gradlew bundleRelease, JAVA_HOME=Android
+  Studio jbr, GRADLE_USER_HOME=E:\gradle-cache, ~13 min). master is many commits
   ahead and still NOT pushed to GitHub. Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
