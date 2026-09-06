@@ -775,7 +775,11 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   deleted + re-inserted (stripeCustomerId 'dev') during the test.
   **Product card updated** to the current product-detail template (see
   vinted-item-card.tsx "round 3" notes; new icons chevron-down-dark,
-  chevron-up-dark, link-dark, shield-check-blue). ⚠️ Fast Refresh can silently drop ("Cannot connect to Expo CLI"
+  chevron-up-dark, link-dark, shield-check-blue). All of it COMMITTED
+  (master fa4a016, not pushed) and **published OTA** to channel production
+  (update group b789a8e5-650e-40de-be38-3f7601f25741, runtime 1.0.0,
+  commit fa4a016) — supersedes the 08-18 diagnostics update; users get it
+  on the 2nd launch. ⚠️ Fast Refresh can silently drop ("Cannot connect to Expo CLI"
   toast) — if a screenshot shows stale UI, force-stop Expo Go and re-open
   the exp:// URL. tsc clean. NOT committed. Dev flow this session:
   backend `npm run start:dev` (mayo-ba on branch prod) + `npx expo start
