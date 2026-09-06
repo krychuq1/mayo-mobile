@@ -848,8 +848,7 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
 - ✅ 2026-09-06 (night): **v6 AAB BUILT** (commit 963c45b, versionCode 6,
   upload-key signed CN=Mayo, verified in bundle: versionCode 6, RC key, new
   header/menu copy, launch-update code) at
-  androidppuild\outputsundle
-eleasepp-release.aab — NEXT: user
+  android\app\build\outputs\bundle\release\app-release.aab — NEXT: user
   uploads to Play production. New in v6: `useLaunchUpdate()` in _layout.tsx
   holds the splash up to 8s for checkForUpdateAsync → fetchUpdateAsync →
   reloadAsync, so an OTA shows on the FIRST open (v5 users only ever got it
