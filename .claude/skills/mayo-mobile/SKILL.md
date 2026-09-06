@@ -836,8 +836,12 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   is 412dp) → `numberOfLines=1 + adjustsFontSizeToFit + minimumFontScale 0.8`,
   paddingHorizontal 24→16. Emulator recipe for narrow phones: `adb shell wm
   density 480` (1080px → 360dp), `adb shell wm density reset` after.
-  Commit 6e4de05 → **OTA group d228a08f-cdf7-4b49-ac5a-e1b9f34b3961 is
-  CURRENT LIVE** (key present, live hash == local). master is many commits
+  Commit 6e4de05 → OTA group d228a08f-cdf7-4b49-ac5a-e1b9f34b3961 (superseded).
+- ✅ 2026-09-06 (evening): app-header template implemented (bare "Mój profil"
+  + "Filtruj"), menu copy Moje dane / Subskrypcja / Wyloguj, filter-sheet
+  safe-area fix (see component notes). Commit a0f1a14 → **OTA group
+  f81851b9-2746-48df-a00b-b87963253750 is CURRENT LIVE** (RC key present,
+  live launchAsset hash == local export). master still NOT pushed to GitHub. master is many commits
   ahead and still NOT pushed to GitHub. Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
