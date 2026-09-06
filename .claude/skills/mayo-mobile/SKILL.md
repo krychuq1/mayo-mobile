@@ -797,8 +797,24 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   underlyingErrorMessage), not the root. `describePurchaseError` now logs
   userInfo — commit 77d5837, **OTA group
   8bce4678-aea8-40bd-afdf-8989a4e90a6f is CURRENT LIVE** (verified key +
-  hash). Next retry on the phone will show the raw Play billing response in
-  `grep ClientLog ~/.pm2/logs/main-out.log`. Subscription reconciliation (same day): RC's single paid subscriber
+  hash). RESOLVED same day — Play's raw response (app login pmror@mayo-app.com,
+  Play account pmror@mayo-app.com, app reinstalled): `DEVELOPER_ERROR —
+  "Account identifiers don't match the previous subscription"`, Play dialog
+  "We are unable to change your subscription plan", and the Play sheet (when
+  it did appear) said "Starting 18 Sept 2026 … first charge 18 Sept" on the
+  MAIN account's Mastercard. Meaning: the DEVICE already carries an active
+  mayo_monthly subscription (Krys's main Google account, bought under the
+  patrycja app login, renews 18 Sept), so Play turns any new mayo purchase
+  on that phone into a deferred PLAN CHANGE of that subscription; RC stamps
+  the new purchase with obfuscatedAccountId = hash(app_user_id pmror) ≠ the
+  original (patrycja) → Play refuses. Not an app bug; can't be fixed in code.
+  To test a fresh purchase: a device WITHOUT the main Google account signed
+  in (remove it from the phone, or a second phone — the Pixel_7 AVD is a
+  google_apis image with no Play Store), Play country PL, and add the test
+  account as a licence tester (else real 54,99 PLN). Product follow-up
+  (real-user scenario): same Google account, different app email → code 6
+  "already active" + no access; would need restore/TRANSFER handling (RC
+  TRANSFER webhook event is currently ignored by mayo-ba). Subscription reconciliation (same day): RC's single paid subscriber
   (patrycja, INITIAL_PURCHASE 08-18 10:47, $15, renewing) IS the "mayo"
   subscription on Krys's own Google account (renews 18 Sept) — the app was
   logged in as patrycja on a device using Krys's Google account. Play = one
