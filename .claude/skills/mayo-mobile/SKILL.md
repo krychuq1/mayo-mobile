@@ -880,6 +880,22 @@ app auto-advances to home with the email shown → kill & reopen app stays signe
   backend `npm run start:dev` (mayo-ba on branch prod) + `npx expo start
   --go` + Expo Go on Pixel_7 (see Running & testing).
 
+- 📦 2026-09-07: **handoff to macOS for iOS.** State check: mayo-mobile master
+  9a3614d == origin/master (SSH remote), mayo-ba develop=prod=1144a53 pushed;
+  mayo-dashboard has UNCOMMITTED carousel work on vinted-item-card (218 lines,
+  from 2026-07-26 — not needed for iOS). Not in git (by design): `android/`,
+  `ios/`, `credentials/` keystore, E:\gradle-cache props — all Android/Windows
+  only. `.env` (RC Android key) IS committed. Claude sessions live in
+  `~/.claude/projects/E--mayo-mobile/*.jsonl` (path-slug keyed → do NOT copy
+  to the Mac; this SKILL.md + DEVELOPMENT.md carry the context, memory dir is
+  empty). On the Mac: clone, `npm i`, `/mayo-mobile`, then iOS work: app.json
+  `ios` is `{}` → needs `bundleIdentifier` (suggest com.mayoapp.mobile),
+  `npx expo prebuild --platform ios`, RevenueCat iOS app +
+  `EXPO_PUBLIC_REVENUECAT_IOS_KEY` (in .env AND `eas env` production), App
+  Store Connect subscription mirroring mayo_monthly, Apple Developer
+  enrollment, Universal Links (apple-app-site-association on mayo-ba) for the
+  magic-link deep link. Any native/app.json change → bump `version` (runtime).
+
 - 🔎 2026-08-18 (payment debug): **prod user wojryba@gmail.com — paywall CTA
   spins forever.** Server showed NOTHING (expected: store billing never touches
   mayo-ba until the RC webhook; his token-validation + subscription-status
