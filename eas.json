@@ -1,0 +1,27 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "production": {
+      "channel": "production",
+      "environment": "production",
+      "autoIncrement": true,
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6816392543",
+        "appleTeamId": "F8FV4FV8DZ",
+        "ascApiKeyPath": "./credentials/AuthKey_A8WU98UZ93.p8",
+        "ascApiKeyId": "A8WU98UZ93",
+        "ascApiKeyIssuerId": "cdebaaf5-5562-407b-94f9-44e9935fbe3f"
+      }
+    }
+  }
+}

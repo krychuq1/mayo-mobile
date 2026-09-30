@@ -45,10 +45,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFF7E3",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
-          }
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
         }
       ],
       "expo-secure-store"
@@ -74,6 +72,16 @@
         "expo-channel-name": "production"
       }
     },
-    "ios": {}
+    "ios": {
+      "bundleIdentifier": "com.mayoapp.mobile",
+      "supportsTablet": false,
+      "buildNumber": "2",
+      "associatedDomains": [
+        "applinks:server.mayo-app.com"
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    }
   }
 }

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   AppState,
+  Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,7 +29,13 @@ import { colors, fonts } from '@/lib/theme';
 const POLL_MS = 3000;
 // Shown only while the store price is unknown (Expo Go) — the real,
 // VAT-inclusive price comes from the RevenueCat offering (Play base plan).
-const FALLBACK_PRICE = '45,00 zł';
+const FALLBACK_PRICE = '54,99 zł';
+
+const PRIVACY_POLICY_URL = 'https://mayo-app.com/privacy-policy';
+const TERMS_URL = 'https://mayo-app.com/terms-and-conditions';
+// Apple review (guideline 3.1.2) requires the paywall itself to state the
+// price, billing period and auto-renewal, and to link Terms + Privacy.
+const STORE_NAME = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
 
 const BENEFITS = [
   'Pełny dostęp do wszystkich rzeczy i filtrów',
@@ -178,6 +186,30 @@ export default function PaywallScreen() {
               Brak ukrytych opłat. Anuluj w dowolnym momencie.
             </Text>
           </View>
+
+          <View style={styles.legal}>
+            <Text style={styles.legalText}>
+              Po 7-dniowym okresie próbnym subskrypcja odnawia się automatycznie
+              co miesiąc za {price}, dopóki jej nie anulujesz w ustawieniach
+              subskrypcji {STORE_NAME} co najmniej 24 godziny przed końcem
+              bieżącego okresu. Opłata pobierana jest z konta {STORE_NAME}.
+            </Text>
+            <View style={styles.legalLinks}>
+              <Pressable
+                onPress={() => Linking.openURL(TERMS_URL)}
+                hitSlop={8}
+                accessibilityRole="link">
+                <Text style={styles.legalLink}>Regulamin</Text>
+              </Pressable>
+              <Text style={styles.legalText}>·</Text>
+              <Pressable
+                onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}
+                hitSlop={8}
+                accessibilityRole="link">
+                <Text style={styles.legalLink}>Polityka prywatności</Text>
+              </Pressable>
+            </View>
+          </View>
         </View>
 
         <View style={styles.dismiss}>
@@ -293,6 +325,32 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     color: colors.muted,
     textAlign: 'center',
+  },
+  legal: {
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.inputBorder,
+    paddingTop: 16,
+  },
+  legalText: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: fonts.regular,
+    color: colors.muted,
+    textAlign: 'center',
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+  },
+  legalLink: {
+    fontSize: 12,
+    lineHeight: 18,
+    fontFamily: fonts.semiBold,
+    color: colors.text,
+    textDecorationLine: 'underline',
   },
   dismiss: { alignItems: 'center', paddingTop: 28 },
   dismissText: {

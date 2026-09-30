@@ -25,9 +25,14 @@ function resolveDevHost(): string {
 
 const DEV_BACKEND_PORT = 3003;
 
-const PROD_BACKEND_URL =
-  process.env.EXPO_PUBLIC_BACKEND_URL ?? 'https://server.mayo-app.com';
+const PROD_BACKEND_URL = 'https://server.mayo-app.com';
 
-export const BACKEND_URL = __DEV__
-  ? `http://${resolveDevHost()}:${DEV_BACKEND_PORT}`
-  : PROD_BACKEND_URL;
+/**
+ * EXPO_PUBLIC_BACKEND_URL wins in every mode when set (e.g. run Metro with
+ * `EXPO_PUBLIC_BACKEND_URL=https://server.mayo-app.com npx expo start` on a
+ * machine without a local mayo-ba). Otherwise dev = Metro host :3003, prod =
+ * the deployed API.
+ */
+export const BACKEND_URL =
+  process.env.EXPO_PUBLIC_BACKEND_URL ??
+  (__DEV__ ? `http://${resolveDevHost()}:${DEV_BACKEND_PORT}` : PROD_BACKEND_URL);

@@ -30,8 +30,14 @@ let configured = false;
 let identifying: Promise<void> | null = null;
 
 async function getPurchases() {
-  const Purchases = (await import('react-native-purchases')).default;
-  return Purchases;
+  // Synchronous require on purpose (not `import()`): Metro would otherwise
+  // split this into a lazy chunk that the iOS dev client fails to register
+  // ("Requiring unknown module <n>", seen 2026-09-28). The module stays in
+  // the main bundle but is only evaluated here, so Expo Go (which never gets
+  // past nativeBillingAvailable()) still never touches the native module.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require('react-native-purchases') as typeof import('react-native-purchases');
+  return mod.default;
 }
 
 /**
@@ -92,8 +98,13 @@ export async function getSubscriptionPrice(): Promise<SubscriptionPrice | null> 
 
 export type NativePurchaseResult = 'purchased' | 'cancelled';
 
-/** RevenueCat entitlement id granted by the mayo_monthly product. */
-const ENTITLEMENT_ID = 'access';
+/**
+ * RevenueCat entitlement id granted by the mayo_monthly product.
+ * ⚠️ NOT "access": the dashboard wizard auto-named it from the project name and
+ * the separators are U+2024 ONE DOT LEADER (not ASCII periods) — verified via
+ * RevenueCat's API on 2026-09-28 (entitlement entl675c3a63b4).
+ */
+const ENTITLEMENT_ID = 'com\u2024mayoapp\u2024mobile Pro';
 
 export type SubscriptionInfo = {
   /** When the current period ends — next charge if `willRenew`, else access end. */

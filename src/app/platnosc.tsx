@@ -37,7 +37,7 @@ const IOS_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 const PLAN_NAME = 'Mayo Standard';
 // Shown only while the store price is unknown (Expo Go) — the real,
 // VAT-inclusive price comes from the RevenueCat offering (Play base plan).
-const FALLBACK_PRICE = '45,00 zł';
+const FALLBACK_PRICE = '54,99 zł';
 
 const MONTHS_GENITIVE = [
   'stycznia',
