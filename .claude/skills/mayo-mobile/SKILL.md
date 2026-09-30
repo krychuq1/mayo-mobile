@@ -1252,6 +1252,36 @@ src/lib/env.ts, SKILL.md). Android is live on Play and untouched by this.
   → then Apple processes the build (~10-30 min) → TestFlight. eas submit
   hangs >10 min in the foreground; use `eas submit:list -p ios`.
 
+- ✅ 2026-10-01: build 1.0.0 (2) processed by Apple ("Complete" in TestFlight)
+  and ATTACHED to version 1.0. Committed (ec4fefc) + **OTA group
+  80a718ff-e888-49bb-a030-61395e1bc513** published (both platforms, keys
+  verified in the .hbc bundles). ASC 1.0 version page filled: promo text,
+  description (⚠️ Apple rejects EMOJI in the description: "invalid
+  characters" — 🧡 removed), keywords, support/marketing URL mayo-app.com,
+  copyright "2026 Krystian Nagórny DOGECODE", review contact (Krystian /
+  +48575545906 / krys.nagorny@gmail.com), review notes (EN, magic-link
+  steps), demo account mayoreview0@gmail.com — **password field still EMPTY
+  (user must type it)**. App Information: category Shopping/Lifestyle,
+  Content Rights = "has third-party content + necessary rights" (Vinted
+  photos), Age rating wizard → **4+**. App Privacy: policy URL + data types
+  Email Address & Purchase History (App Functionality, linked, no tracking)
+  → **Published**. Subscription "Add for Review" → draft submission "Item
+  Ready to Submit" (goes with the version). REMAINING for submission: **iOS
+  screenshots** (6.5" = 1284×2778 required — compositor at
+  /tmp scratch `compose_ios_shot.py` re-creatable: cream gradient + Inter
+  Bold headline + rounded 1000px-wide card of the 1206×2622 sim capture;
+  first one done: store-assets/ios-screenshot-1-login.png); 2 feed shots
+  need a signed-in account WITH access on prod in the simulator — the Mac
+  has NO prod SSH key (id_rsa rejected) so the dev-grant SQL must be run
+  from the Windows PC; then user types "Add for Review" → "Submit for
+  Review". Sim gotchas: keychain (expo-secure-store) SURVIVES uninstall →
+  `xcrun simctl keychain <udid> reset` to get the login screen; paywall in
+  the US-storefront simulator now shows the REAL App Store price ($11.99 —
+  Apple's auto-tier for the US, PL shows 54,99 zł), i.e. StoreKit product
+  fetch works since the Paid Apps Agreement went Active. Launcher fix: a
+  beforeunload dialog on reload CRASHED launch.js → it now auto-accepts
+  dialogs (ctx.on('page') + page.on('dialog')). pw.js exposes `fs`.
+
 ## Open TODOs
 
 - ~~Deep linking (Phase 2)~~ DONE 2026-08-18 (see that session entry): App Link on
