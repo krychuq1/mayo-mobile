@@ -1375,6 +1375,23 @@ src/lib/env.ts, SKILL.md). Android is live on Play and untouched by this.
     app the US-storefront product in sandbox; the paywall prints
     product.priceString verbatim. Sub + app are POL-only, so production
     should always get PLN — re-check on the first real App Store install.
+  - ✅ 2026-10-04 (evening): **review account signs in WITHOUT the mailbox.**
+    Apple (IP 17.185.64.74, UA Mayo/2) requested a magic link for
+    mayoreview0@gmail.com 6 min after submission; Google then BLOCKED the
+    reviewer's Gmail sign-in ("Critical security alert" copy landed in
+    krys.nagorny@gmail.com = recovery address) → token never activated.
+    Fix: mayo-ba 71b26b8 (develop=prod, deployed): `registerUser` returns an
+    already-activated token and sends NO email for addresses in the server
+    `.env` **`REVIEW_LOGIN_EMAILS`** (comma-separated; prod =
+    mayoreview0@gmail.com; unset it to switch the shortcut off, no deploy
+    needed — just `pm2 restart main --update-env`). The app needs no change
+    (check-email poll flips within 3 s). Verified live: review account →
+    isTokenActivated true + subscription-status true; normal account →
+    false. ASC review notes rewritten to disclose it (demo account skips
+    the email step; standard flow testable with the reviewer's own email).
+    Find Apple's requests: `sudo grep "POST /auth " /var/log/nginx/access.log`
+    (17.x.x.x = Apple). TODO (optional): Play Console "App access"
+    instructions still describe the Gmail route — same shortcut works there.
   - REMAINING (old list, all done): DAC7 declaration → add version 4c1b4fef-… to the review submission
     (POST /v1/reviewSubmissionItems) → submit (PATCH reviewSubmissions
     submitted:true) or click "Add for Review" → "Submit" in ASC. DSA trader
