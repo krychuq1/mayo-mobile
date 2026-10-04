@@ -1282,6 +1282,104 @@ src/lib/env.ts, SKILL.md). Android is live on Play and untouched by this.
   beforeunload dialog on reload CRASHED launch.js → it now auto-accepts
   dialogs (ctx.on('page') + page.on('dialog')). pw.js exposes `fs`.
 
+- ✅ 2026-10-03 (Mac): **iOS listing complete — only the demo password + Submit
+  remain.** Prod SSH now works from the Mac: key at
+  `~/Desktop/mayo/mayo-keys/mayo.pem` (chmod 600 done), same host/recipes as
+  the Windows notes. **ASC is driven via the API now, not Playwright** (the
+  browser session expires and needs the user's 2FA): `scripts/asc.js` =
+  dependency-free client (ES256 JWT from eas.json `submit.production.ios` +
+  the gitignored .p8) — `node scripts/asc.js GET /v1/apps/6816392543/...` or
+  `require('./scripts/asc.js').asc(method, path, body)`. Done through it:
+  - 3 screenshots uploaded to set APP_IPHONE_65 (1284×2778), pl localization
+    7d67e7ac-…, order feed(żakiet) / feed(Zara boots) / login; files in
+    store-assets/ios-screenshot-{1-login,2-feed,3-feed}.png (upload = POST
+    appScreenshots → PUT uploadOperations → PATCH uploaded+md5).
+  - **Pricing and Availability had never been set** (both 404) → created:
+    price schedule Free (base POL), availability **POL only** (POST
+    /v2/appAvailabilities must list ALL 175 territories as included
+    resources, `available: id==='POL'`).
+  - Internal TestFlight group "Team" (all builds) + tester
+    krys.nagorny@gmail.com (invite mail sent) → install build 1.0.0 (2) via
+    TestFlight to test the purchase (TestFlight IAP = sandbox, free, no
+    sandbox tester needed).
+  - Verified state: version 1.0 id 4c1b4fef-… PREPARE_FOR_SUBMISSION with
+    build 2 attached (VALID); subscription READY_TO_SUBMIT (review
+    screenshot COMPLETE, free-trial offer); draft reviewSubmission
+    04966ab7-… (subscription item); age 4+, category Shopping; AASA live on
+    the server AND on Apple's CDN. Review detail: demo account
+    mayoreview0@gmail.com, **password still empty**.
+  - ℹ️ Correction to the 09-30 note: build 2's embedded JS DOES contain the
+    then-uncommitted changes (EAS packs the working tree) — verified in the
+    IPA: auto-renew terms, 54,99 fallback, entitlement id, RC iOS key,
+    associated-domains entitlement. No rebuild needed. (Hermes strings with
+    Polish chars are UTF-16LE — search the .jsbundle with
+    `s.encode('utf-16-le')`, plain grep misses them.)
+  - Screenshot recipe without touch input (no tap/typing automation on this
+    Mac): temp `useEffect(() => requestLogin(email)…)` in login.tsx → app
+    lands on check-email → activate on prod via SSH (`curl -X POST
+    http://127.0.0.1:3000/auth/activate/<user.lastToken>`); to show ONE
+    chosen feed item: temp `.filter(i => i.id === N)` +
+    `LogBox.ignoreAllLogs()` in home.tsx, terminate+launch the app, `simctl
+    io booted screenshot`; `simctl status_bar booted override --time 9:41
+    …`; revert the temp edits (`git checkout`). Simulator is signed in as
+    krys.nagorny+iosreview@gmail.com, which now has a seeded prod Purchase
+    (id 123, stripeCustomerId 'ios-screenshot-seed') — junk, delete someday.
+  - (later same day) demo account password SET via the API (PATCH
+    appStoreReviewDetails/5199b1b1-… demoAccountPassword; never write it
+    into the repo). Apple's own validation (POST reviewSubmissionItems with
+    the version → 409 lists every blocker in meta.associatedErrors — a free
+    pre-submit check) reports exactly ONE blocker:
+    **DAC7_CANNOT_SUBMIT_MISSING_REGULATED_PERSONAL_SERVICE_APP_DECLARATION**
+    — ASC → Business → Compliance → "Directive on Administrative
+    Cooperation - 7th Amendment" → Add Info → "Do any of your apps provide
+    personal services?" (answer for Mayo: No → Done). It is a tax-compliance
+    declaration → left for the user to confirm. DSA still "In Review".
+  - (evening) user clicked DAC7 Done → **version 1.0 ADDED to the draft
+    review submission** (validation passed, state READY_FOR_REVIEW, NOT
+    submitted — waiting for the TestFlight purchase test + user's go; submit
+    = PATCH /v1/reviewSubmissions/04966ab7-… `submitted:true`). Apple
+    server notifications (V2, prod + sandbox) now point at the RevenueCat
+    URL (PATCH /v1/apps subscriptionStatusUrl*). ASC invitation sent to
+    patrycja.musur@gmail.com (Developer, Mayo app only, expires 10-06) —
+    she can't be a TestFlight INTERNAL tester until she accepts (409
+    "Tester(s) cannot be assigned"); after that: POST /v1/betaTesters into
+    group "Team" 4d5edfe7-…. ⚠️ Legal pages: mayo-fe privacy policy named
+    only Google Play and the regulamin covered only the masterclass site →
+    DRAFTED locally in ~/mayo-fe (uncommitted, not deployed; no
+    node_modules there so not built): Apple/App Store added to the policy,
+    regulamin got "7. Aplikacja mobilna mayo" + "8. Subskrypcja w
+    Aplikacji". User approved → committed e04703f, pushed main + develop
+    over SSH (`git push git@github.com:krychuq1/mayo-fe.git main` — the
+    Mac's https remote has no credentials). dev.mayo-app.com verified with
+    the new text within ~1 min; ℹ️ the PROD (main) deploy sits ~1 HOUR in
+    "Sync hashed assets (long cache)" (same on 08-04: 10:21→11:21) — normal,
+    just wait before checking mayo-app.com.
+  - 2026-10-04: mayo-fe prod deploy finished, legal pages verified live.
+    Patrycja accepted the ASC invite → added to TestFlight group "Team"
+    (both testers state INVITED until they open the TestFlight email/app).
+    Waiting for: TestFlight purchase test → user's "submit".
+  - ✅ 2026-10-04 11:25: **iOS 1.0 SUBMITTED FOR REVIEW** (version +
+    subscription + subscription group all WAITING_FOR_REVIEW; release type
+    AFTER_APPROVAL = goes live automatically once approved). First submit
+    409'd with SUBSCRIPTION_SUBMISSION_REQUIRES_GROUP_VERSION → fix: POST
+    /v1/reviewSubmissionItems with relationship `subscriptionGroupVersion`
+    (id from GET /v1/subscriptionGroups/22415385/versions), then PATCH
+    reviewSubmissions `submitted:true`. TestFlight purchase VERIFIED e2e
+    before submitting: prod log "INITIAL_PURCHASE: app-subscription access
+    granted to patrycja.musur+ios@gmail.com (APP_STORE, mayo_monthly)",
+    Purchase id 124 (sandbox — RC EXPIRATION will remove it on its own).
+    ℹ️ TestFlight quirk seen on Patrycja's iPhone: paywall showed
+    "$11.99 / mies." while Apple's sheet said "54,99 zł per month". Not an
+    app bug: $11.99 is Apple's USA price point for mayo_monthly (checked via
+    /v1/subscriptions/…/prices?filter[territory]=USA) — StoreKit handed the
+    app the US-storefront product in sandbox; the paywall prints
+    product.priceString verbatim. Sub + app are POL-only, so production
+    should always get PLN — re-check on the first real App Store install.
+  - REMAINING (old list, all done): DAC7 declaration → add version 4c1b4fef-… to the review submission
+    (POST /v1/reviewSubmissionItems) → submit (PATCH reviewSubmissions
+    submitted:true) or click "Add for Review" → "Submit" in ASC. DSA trader
+    status was still "In Review" on 09-30 (not visible via the API).
+
 ## Open TODOs
 
 - ~~Deep linking (Phase 2)~~ DONE 2026-08-18 (see that session entry): App Link on
