@@ -189,7 +189,8 @@ export default function PaywallScreen() {
 
           <View style={styles.legal}>
             <Text style={styles.legalText}>
-              Po 7-dniowym okresie próbnym subskrypcja odnawia się automatycznie
+              Mayo Standard — subskrypcja miesięczna. Po 7-dniowym okresie
+              próbnym subskrypcja odnawia się automatycznie
               co miesiąc za {price}, dopóki jej nie anulujesz w ustawieniach
               subskrypcji {STORE_NAME} co najmniej 24 godziny przed końcem
               bieżącego okresu. Opłata pobierana jest z konta {STORE_NAME}.
