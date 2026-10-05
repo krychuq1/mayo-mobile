@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,6 +21,7 @@ import { colors, fonts } from '@/lib/theme';
 
 const PRIVACY_POLICY_URL = 'https://mayo-app.com/privacy-policy';
 const TERMS_URL = 'https://mayo-app.com/terms-and-conditions';
+const STORE_NAME = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
 
 /**
  * "Moje dane" profile screen — Claude Design template
@@ -44,7 +46,7 @@ export default function DaneScreen() {
     if (deleting) return;
     Alert.alert(
       'usunąć konto?',
-      'to jest nieodwracalne — znikną wszystkie Twoje dane. aktywną subskrypcję anuluj osobno w Google Play.',
+      `to jest nieodwracalne — znikną wszystkie Twoje dane. aktywną subskrypcję anuluj osobno w ${STORE_NAME}.`,
       [
         { text: 'nie, zostaję', style: 'cancel' },
         {
@@ -120,8 +122,8 @@ export default function DaneScreen() {
             </Text>
           </Pressable>
           <Text style={styles.caption}>
-            Usunięcie konta jest nieodwracalne. Subskrypcję anulujesz osobno w
-            Google Play (zakładka Subskrypcja).
+            Usunięcie konta jest nieodwracalne. Subskrypcję anulujesz osobno w{' '}
+            {STORE_NAME} (zakładka Subskrypcja).
           </Text>
         </View>
       </ScrollView>

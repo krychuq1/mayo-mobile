@@ -35,6 +35,7 @@ const PLAY_SUBSCRIPTIONS_URL =
 const IOS_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 
 const PLAN_NAME = 'Mayo Standard';
+const STORE_NAME = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
 // Shown only while the store price is unknown (Expo Go) — the real,
 // VAT-inclusive price comes from the RevenueCat offering (Play base plan).
 const FALLBACK_PRICE = '54,99 zł';
@@ -158,7 +159,7 @@ export default function PlatnoscScreen() {
               <Text style={styles.buttonText}>Zarządzaj subskrypcją</Text>
             </Pressable>
             <Text style={styles.caption}>
-              Subskrypcją zarządzasz w Google Play — tam możesz ją anulować w
+              Subskrypcją zarządzasz w {STORE_NAME} — tam możesz ją anulować w
               każdej chwili. Dostęp działa do końca opłaconego okresu.
             </Text>
           </View>
