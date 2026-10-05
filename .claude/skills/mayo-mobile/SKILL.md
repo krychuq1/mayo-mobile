@@ -1392,6 +1392,45 @@ src/lib/env.ts, SKILL.md). Android is live on Play and untouched by this.
     Find Apple's requests: `sudo grep "POST /auth " /var/log/nginx/access.log`
     (17.x.x.x = Apple). TODO (optional): Play Console "App access"
     instructions still describe the Gmail route — same shortcut works there.
+  - ⚠️ 2026-10-05: Apple answered with the standard **"Guideline 2.1 –
+    Information Needed – New App Submission"** (new developer account;
+    version state REJECTED but it is an info request): wants a physical-
+    device screen recording (login, subscription flow, account deletion) +
+    7 written answers, in the reply AND in the Notes field. Done same day:
+    - OTAs (runtime 1.0.0, both platforms): 30db5d7 group 54184590-… paywall
+      small print now starts "Mayo Standard — subskrypcja miesięczna."
+      (Apple wants title + length on the paywall); d675029 group
+      **73ffc450-a6ec-4d93-9bc3-c1398cd3b0ac = CURRENT LIVE** — dane.tsx /
+      platnosc.tsx said "Google Play" on iOS (2.3.10 risk) → STORE_NAME by
+      Platform.OS like paywall.tsx.
+    - Reply posted in Resolution Center (text ≤ **4000 chars** — the
+      textarea shows a countdown; final text in
+      store-assets/app-review-reply.md is the LONG version, the sent one was
+      condensed) with attachments mayo-app-review-recording.mp4 (user's
+      iPhone recording compressed 125 MB → 9 MB: `ffmpeg -vf scale=886:-2
+      -c:v libx264 -crf 25 -an`) + a PNG of the purchase sheet showing
+      "1-week free trial". Attachment gotchas: **.jpeg is refused** ("This
+      field is invalid / An error has occurred") → convert to PNG; attach
+      files ONE AT A TIME via the hidden input[type=file]; the error banner
+      stays stale — type a char in the textarea to re-enable Reply.
+      Replying needs the browser (user logs in; no public API for messages).
+    - Notes field (API) now holds the condensed answers (2,781 chars).
+    - Resubmit via API: PATCH /v1/reviewSubmissionItems/<rejected item>
+      `resolved:true` → PATCH reviewSubmissions `submitted:true` →
+      WAITING_FOR_REVIEW (2026-10-05 22:12). The UI "Resubmit" button stays
+      disabled until the rejected item is edited/resolved.
+    - Creator framing used in the answers: Mayo = app of fashion creator
+      pmror (IG @pmror_, ~34K followers, bio links mayo-app.com); styling
+      content is hers; listings are third-party public listings, linked,
+      NOT affiliated with Vinted, no claim of rights (5.2.2 is the weak
+      spot if Apple pushes).
+    - Known gaps seen in the recording (not fixed): paywall always promises
+      the 7-day trial even when the Apple ID already used it (sheet then
+      shows immediate 54,99 PLN) → should check intro eligibility
+      (RC checkTrialOrIntroductoryPriceEligibility) and switch copy;
+      TestFlight still returns $11.99 from StoreKit on Patrycja's iPhone;
+      paywall line "Przypomnimy Ci … 2 dni wcześniej" has no backend behind
+      it.
   - REMAINING (old list, all done): DAC7 declaration → add version 4c1b4fef-… to the review submission
     (POST /v1/reviewSubmissionItems) → submit (PATCH reviewSubmissions
     submitted:true) or click "Add for Review" → "Submit" in ASC. DSA trader

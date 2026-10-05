@@ -11,7 +11,11 @@ Thank you for the review. Below is the requested information for Mayo (1.0, buil
 
 **1. Screen recording**
 
-Attached. It was captured on a physical iPhone and shows: app launch, sign-in with a passwordless magic link, the paywall (subscription title, length, price, Terms of Use and Privacy Policy links), starting the subscription with a free trial, the main feed and filters, the subscription screen, and account deletion.
+Attached (mayo-app-review-recording.mp4). It was captured on a physical iPhone with the TestFlight build and shows: the sign-in screen (the first screen after launch), sign-in with a passwordless magic link, the paywall (subscription title, length, price, auto-renewal terms, Terms of Use and Privacy Policy links), starting the subscription, the main feed and the styling view, the account screen with the Privacy Policy, the subscription screen, and account deletion ("Usuń konto"), after which the app returns to the sign-in screen.
+
+Two notes about what the recording shows in the sandbox:
+- The Apple ID used for the recording had already used the free trial in an earlier test, so Apple's purchase sheet shows the regular price without the trial. A new subscriber sees "1-week free trial" on the sheet — see the attached screenshot (purchase-sheet-free-trial.jpeg) from the first test purchase.
+- In TestFlight the app received the US storefront price from StoreKit ($11.99), while Apple's sheet shows the Polish price (54,99 zł). The app displays the localized price string provided by StoreKit; on the Polish App Store storefront it is 54,99 zł.
 
 **2. Purpose and target audience**
 
@@ -46,8 +50,6 @@ Mayo is the app of the fashion creator pmror. She personally selects the items s
 **7. In-App Purchase**
 
 One auto-renewable subscription: "Mayo Standard" (product ID mayo_monthly), 1 month, 54,99 zł per month, with a 7-day free trial for new subscribers. It unlocks access to the feed. Navigation: sign in with a new account (any email other than the demo account) → the paywall appears immediately after sign-in → tap "Wypróbuj za 0 zł". The paywall shows the subscription title, length and price, the auto-renewal terms, and links to the Terms of Use ("Regulamin") and Privacy Policy ("Polityka prywatności"). An existing subscription can be managed under "Mój profil" → "Subskrypcja".
-
-Note: in TestFlight / sandbox the price label may be shown for the US storefront ($11.99) on some devices; on the Polish App Store storefront it is 54,99 zł.
 
 Best regards,
 Krystian Nagórny
