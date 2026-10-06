@@ -1431,6 +1431,18 @@ src/lib/env.ts, SKILL.md). Android is live on Play and untouched by this.
       TestFlight still returns $11.99 from StoreKit on Patrycja's iPhone;
       paywall line "Przypomnimy Ci … 2 dni wcześniej" has no backend behind
       it.
+  - ✅ 2026-10-05 23:35: **iOS 1.0 APPROVED** (version READY_FOR_DISTRIBUTION,
+    subscription APPROVED, group approved) — ~1.5 h after the reply/resubmit.
+    ⚠️ 2026-10-06: NOT visible on the App Store (itunes lookup PL/US → 0,
+    apps.apple.com 404): Pricing and Availability → App Availability shows
+    Poland = **"Trader Status Not Provided — Trader status is required for
+    distribution on the App Store in the European Union"**; Business →
+    Compliance → Digital Services Act still **"In Review"** since 09-28
+    (DAC7 became Active 10-03). Apple-side verification; nothing else is
+    flagged in ASC. Once it flips to Active, PL availability should follow
+    within ~24 h with no resubmission. Check with:
+    `curl "https://itunes.apple.com/lookup?id=6816392543&country=pl"`
+    (resultCount 1 = live).
   - REMAINING (old list, all done): DAC7 declaration → add version 4c1b4fef-… to the review submission
     (POST /v1/reviewSubmissionItems) → submit (PATCH reviewSubmissions
     submitted:true) or click "Add for Review" → "Submit" in ASC. DSA trader
